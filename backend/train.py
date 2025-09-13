@@ -15,7 +15,7 @@ n_factors = [20, 25, 30, 45]
 n_epochs = [15, 25]
 
 # Prepare the data for reading and read it
-reader = Reader(rating_scale=(1,5))
+reader = Reader(rating_scale=(0.5,5))
 trainData = Dataset.load_from_df(trainset[["userId", "movieId", "rating"]], reader)
 testData = Dataset.load_from_df(testset[["userId", "movieId", "rating"]], reader)
 
