@@ -5,11 +5,11 @@ conn = sqlite3.connect('movie.db')
 c = conn.cursor()
 
 # Create user table
-c.execute("CREATE TABLE users (user_token text);")
+c.execute("CREATE TABLE users (userToken text);")
 
 # Create rating table
 c.execute("""CREATE TABLE ratings (
-        userId integer,
+        userToken text,
         movieId integer,
         rating real
     )""")
