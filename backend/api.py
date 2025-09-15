@@ -1,0 +1,75 @@
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+import sqlite3
+from typing import Dict, List
+
+app = FastAPI()
+
+class Movie(BaseModel):
+    title: str
+    genres: str
+    imdbId: int
+    tmdbId: int
+
+@app.get("/")
+def index():
+    connection = sqlite3.connect("movie.db")
+    cursor = connection.cursor()
+    cursor.execute("SELECT title, genres, imdbId, tmdbId FROM movies INNER JOIN links on movies.movieID = links.movieID")
+    movies = cursor.fetchall()
+    connection.close()
+    return movies
+
+@app.get("/movies/{movTitle}")
+def search(movTitle: str):
+    connection = sqlite3.connect("movie.db")
+    cursor = connection.cursor()
+    cursor.execute("SELECT title, genres, imdbId, tmdbId FROM movies INNER JOIN links on movies.movieID = links.movieID WHERE title LIKE ?", ('%' + movTitle + '%',))
+    movies = cursor.fetchall()
+    connection.close()
+    return movies
+
+@app.post("/signup/{userToken}")
+def rate(userToken: str):
+    connection = sqlite3.connect("movie.db")
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM users WHERE userToken = ?", (userToken,))
+    user = cursor.fetchall()
+    if user:
+        raise HTTPException(status_code=409, detail="duplicate token")
+    cursor.execute("INSERT INTO users(userToken) VALUES(?)", (userToken,))
+    connection.commit()
+    connection.close()
+    return userToken
+
+@app.get("/signin/{userToken}")
+def signin(userToken: str):
+    connection = sqlite3.connect("movie.db")
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM users WHERE userToken = ?", (userToken,))
+    user = cursor.fetchall()
+    if not user:
+        raise HTTPException(status_code=404, detail="token doesn't exist")
+    connection.close()
+    return user
+
+@app.post("/rate/{userToken}/{movieId}/{rating}")
+def rate(userToken: str, movieId: int, rating: float):
+    connection = sqlite3.connect("movie.db")
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM movies WHERE movieId = ?", (movieId,))
+    movie = cursor.fetchall()
+    if not movie:
+        raise HTTPException(status_code=404, detail="movie doesn't exist")
+    cursor.execute("DELETE FROM ratings WHERE userToken = ? AND movieId = ?", (userToken, movieId))
+    cursor.execute("INSERT INTO ratings(userToken, movieId,  rating) VALUES(?, ?, ?)", (userToken, movieId, rating))
+    cursor.execute("SELECT * FROM ratings")
+    ratings = cursor.fetchall()
+    connection.commit()
+    connection.close()
+    return ratings
+
+# get recommendations
+
+
+
