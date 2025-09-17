@@ -15,9 +15,10 @@ class Movie(BaseModel):
 def index():
     connection = sqlite3.connect("movie.db")
     cursor = connection.cursor()
-    cursor.execute("SELECT title, genres, imdbId, tmdbId FROM movies INNER JOIN links on movies.movieID = links.movieID")
+    cursor.execute("SELECT title, genres, imdbId, tmdbId FROM movies INNER JOIN links on movies.movieID = links.movieID LIMIT 9")
     movies = cursor.fetchall()
     connection.close()
+    movies = [{"title": title, "genres": genres, "imdbId": imdbId, "tmdbId": tmbdId} for [title, genres, imdbId, tmbdId] in movies]
     return movies
 
 @app.get("/movies/{movTitle}")
