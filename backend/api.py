@@ -2,6 +2,11 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import sqlite3
 from typing import Dict, List
+import os
+from dotenv import load_dotenv
+import requests
+
+load_dotenv()
 
 app = FastAPI()
 
@@ -70,7 +75,30 @@ def rate(userToken: str, movieId: int, rating: float):
     connection.close()
     return ratings
 
-# get recommendations
+# Get picture from TMDB
+def retrievePic(tmdbId: int):
+    url = 'https://api.themoviedb.org/3/movie/' + str(tmdbId) + '/images'
+    headers = {"Authorization": "Bearer " + os.getenv("TMDB_API_KEY"), "accept": "application/json"}
+    try:
+        print("HIHI")
+        response = requests.get(url, headers=headers)
+        print("BLOOP")
+        if response.status_code == 200:
+            pic = response.json()
+            return pic["backdrops"][0]
+        else:
+            print('Error:', response.status_code)
+            return None
+    except:
+        return None
+
+@app.get("/pic/{tmdbId}")
+def getPic(tmdbId: int):
+    pic = retrievePic(tmdbId)
+    #if not pic:
+     #   raise HTTPException(status_code=404, detail="movie doesn't exist")
+    print(pic)
+    return pic
 
 
 
