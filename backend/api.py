@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 import requests
 
 load_dotenv()
-
 app = FastAPI()
 
 class Movie(BaseModel):
@@ -30,9 +29,10 @@ def index():
 def search(movTitle: str):
     connection = sqlite3.connect("movie.db")
     cursor = connection.cursor()
-    cursor.execute("SELECT title, genres, imdbId, tmdbId FROM movies INNER JOIN links on movies.movieID = links.movieID WHERE title LIKE ?", ('%' + movTitle + '%',))
+    cursor.execute("SELECT title, genres, imdbId, tmdbId FROM movies INNER JOIN links on movies.movieID = links.movieID WHERE title LIKE ? LIMIT 9", ('%' + movTitle + '%',))
     movies = cursor.fetchall()
     connection.close()
+    movies = [{"title": title, "genres": genres, "imdbId": imdbId, "tmdbId": tmbdId} for [title, genres, imdbId, tmbdId] in movies]
     return movies
 
 @app.post("/signup/{userToken}")
@@ -80,9 +80,7 @@ def retrievePic(tmdbId: int):
     url = 'https://api.themoviedb.org/3/movie/' + str(tmdbId) + '/images'
     headers = {"Authorization": "Bearer " + os.getenv("TMDB_API_KEY"), "accept": "application/json"}
     try:
-        print("HIHI")
         response = requests.get(url, headers=headers)
-        print("BLOOP")
         if response.status_code == 200:
             pic = response.json()
             return pic["backdrops"][0]
@@ -95,9 +93,8 @@ def retrievePic(tmdbId: int):
 @app.get("/pic/{tmdbId}")
 def getPic(tmdbId: int):
     pic = retrievePic(tmdbId)
-    #if not pic:
-     #   raise HTTPException(status_code=404, detail="movie doesn't exist")
-    print(pic)
+    if not pic:
+        raise HTTPException(status_code=404, detail="movie doesn't exist")
     return pic
 
 
