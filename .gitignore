@@ -24,3 +24,8 @@ dist-ssr
 *.sw?
 
 .env
+
+*.db
+test.py
+movieData
+__pycache__
