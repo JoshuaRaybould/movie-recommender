@@ -1,10 +1,14 @@
 import React from "react";
+import Navbar from "../components/Navbar";
 
 const Recommendations = () => {
   return (
-    <div>
-      <p>BOO</p>
-    </div>
+    <>
+      <Navbar userToken={""} />
+      <div>
+        <p>BOO</p>
+      </div>
+    </>
   );
 };
 

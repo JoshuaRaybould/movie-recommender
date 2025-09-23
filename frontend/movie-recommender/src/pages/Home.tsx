@@ -1,12 +1,14 @@
-import { useEffect, useState, type SetStateAction } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import axios, { type AxiosResponse } from "axios";
 import { useDebouncedCallback } from "use-debounce";
 import {
   QueryClient,
   QueryClientProvider,
   useQuery,
 } from "@tanstack/react-query";
+import Navbar from "../components/Navbar";
+import Modal from "../components/Modal";
 
 /*const query = useQuery({
    queryKey: ['all-movies'],
@@ -37,75 +39,75 @@ function Loading() {
 type Movie = {
   title: string;
   genres: string;
-  imdbId: number;
   tmdbId: number;
+  picUrl: string;
+  rating: number | null;
 };
 
-var movies = await axios.get("/api/");
-//console.log(movies.data);
-
 const Home = () => {
-  const [picPaths, setPicPaths] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const debounced = useDebouncedCallback((value) => {
     setSearchTerm(value);
   }, 700);
+  const [token, setToken] = useState<string>("");
+  const [movies, setMovies] = useState([]);
+  let params = useParams();
 
-  const nav = useNavigate();
-
-  function handleClick() {
-    nav("/recommendations");
+  if (params && params["userToken"] && token == "") {
+    setToken(params["userToken"]);
   }
 
   async function getData() {
-    if (searchTerm) {
-      movies = await axios.get(`/api/movies/${searchTerm}`);
-    } else {
-      movies = await axios.get(`/api/`);
-    }
     setIsLoading(true);
-    const curArr = await Promise.all(
-      movies.data.map(
-        async (item: Movie) =>
-          (
-            await axios.get(`/api/pic/${item.tmdbId.toString()}`)
-          ).data["file_path"]
-      )
-    );
+    if (searchTerm) {
+      setMovies((await axios.get(`/api/movies/${searchTerm}/${token}`)).data);
+    } else {
+      setMovies((await axios.get(`/api/${token}`)).data);
+    }
 
-    setPicPaths(curArr);
     setIsLoading(false);
   }
 
   useEffect(() => {
     getData();
-  }, [searchTerm]);
+  }, [searchTerm, token]);
 
   return (
     <>
+      <Navbar userToken={token} />
       <div className="mb-3">
         <input
-          className="outline-solid outline-1 h-6 w-80"
-          placeholder="Search"
+          className="rounded-lg outline-solid outline-1 h-7 w-80"
+          placeholder=" Search"
           onChange={(e) => {
             debounced(e.target.value);
           }}
         />
       </div>
-      <div className="w-full flex h-200">
+      <div className="w-full flex h-full">
         {isLoading ? (
           <div className="w-full flex h-200 items-center justify-center">
             <Loading />
           </div>
         ) : (
-          <div className="grid grid-cols-3 grid-rows-3 gap-4">
-            {movies.data.map((item: Movie, index: number) => (
-              <div key={item.imdbId}>
+          <div className="grid grid-cols-4 grid-rows-2  justify-center content-normal gap-3">
+            {movies.map((item: Movie) => (
+              <div className="bottom-0" key={item.tmdbId}>
                 <img
-                  src={"https://image.tmdb.org/t/p/w500" + picPaths[index]}
+                  className="ml-auto mr-auto"
+                  src={`https://image.tmdb.org/t/p/w200${item.picUrl}`}
                 />
-                <text>{item.title}</text>
+                <span className="block w-50 overflow-hidden text-ellipsis text-wrap break-normal">
+                  {item.title}
+                </span>
+                <div>
+                  <Modal
+                    movieId={item.tmdbId}
+                    movieTitle={item.title}
+                    prevRating={null}
+                  ></Modal>
+                </div>
               </div>
             ))}
           </div>
