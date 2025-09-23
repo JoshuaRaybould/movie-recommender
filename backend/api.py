@@ -15,24 +15,26 @@ class Movie(BaseModel):
     imdbId: int
     tmdbId: int
 
-@app.get("/")
-def index():
+@app.get("/{userToken}")
+def index(userToken: str):
     connection = sqlite3.connect("movie.db")
     cursor = connection.cursor()
-    cursor.execute("SELECT title, genres, imdbId, tmdbId FROM movies INNER JOIN links on movies.movieID = links.movieID LIMIT 9")
+    cursor.execute("SELECT title, genres, imdbId, tmdbId, rating FROM movies INNER JOIN links on movies.movieID = links.movieID LEFT OUTER JOIN ratings on movies.movieId = ratings.movieId AND ratings.userToken = ? LIMIT 8", (userToken,))
     movies = cursor.fetchall()
     connection.close()
-    movies = [{"title": title, "genres": genres, "imdbId": imdbId, "tmdbId": tmbdId} for [title, genres, imdbId, tmbdId] in movies]
+    movies = [{"title": title, "genres": genres, "tmdbId": tmdbId, "picUrl": retrievePic(tmdbId), "rating": rating} for [title, genres, imdbId, tmdbId, rating] in movies]
     return movies
 
-@app.get("/movies/{movTitle}")
-def search(movTitle: str):
+@app.get("/movies/{movTitle}/{userToken}")
+def search(movTitle: str, userToken):
+    print(userToken)
     connection = sqlite3.connect("movie.db")
     cursor = connection.cursor()
-    cursor.execute("SELECT title, genres, imdbId, tmdbId FROM movies INNER JOIN links on movies.movieID = links.movieID WHERE title LIKE ? LIMIT 9", ('%' + movTitle + '%',))
+    cursor.execute("SELECT title, genres, imdbId, tmdbId, rating FROM movies INNER JOIN links on movies.movieID = links.movieID LEFT OUTER JOIN ratings on movies.movieId = ratings.movieId AND ratings.userToken = ? WHERE title LIKE ? LIMIT 8", (userToken, '%' + movTitle + '%'))
     movies = cursor.fetchall()
+    print(movies)
     connection.close()
-    movies = [{"title": title, "genres": genres, "imdbId": imdbId, "tmdbId": tmbdId} for [title, genres, imdbId, tmbdId] in movies]
+    movies = [{"title": title, "genres": genres, "tmdbId": tmdbId, "picUrl": retrievePic(tmdbId), "rating": rating} for [title, genres, imdbId, tmdbId, rating] in movies]
     return movies
 
 @app.post("/signup/{userToken}")
@@ -77,25 +79,19 @@ def rate(userToken: str, movieId: int, rating: float):
 
 # Get picture from TMDB
 def retrievePic(tmdbId: int):
-    url = 'https://api.themoviedb.org/3/movie/' + str(tmdbId) + '/images'
+    url = 'https://api.themoviedb.org/3/movie/' + str(tmdbId)
     headers = {"Authorization": "Bearer " + os.getenv("TMDB_API_KEY"), "accept": "application/json"}
     try:
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
-            pic = response.json()
-            return pic["backdrops"][0]
+            data = response.json()
+            pic = data["poster_path"]
+            return pic
         else:
             print('Error:', response.status_code)
             return None
     except:
         return None
-
-@app.get("/pic/{tmdbId}")
-def getPic(tmdbId: int):
-    pic = retrievePic(tmdbId)
-    if not pic:
-        raise HTTPException(status_code=404, detail="movie doesn't exist")
-    return pic
 
 
 
