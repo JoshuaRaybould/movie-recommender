@@ -52,10 +52,25 @@ const Home = () => {
   }, 700);
   const [token, setToken] = useState<string>("");
   const [movies, setMovies] = useState([]);
+
+  const navigate = useNavigate();
+
+  async function authed() {
+    console.log("HUH");
+    console.log(token);
+    var res = await axios.get("/api/signin/" + token).catch(function () {
+      navigate("/");
+    });
+    if (!res || (res && !res.data)) {
+      navigate("/");
+    }
+  }
+
   let params = useParams();
 
-  if (params && params["userToken"] && token == "") {
-    setToken(params["userToken"]);
+  if (params && params.userToken && token == "") {
+    setToken(params.userToken);
+    authed();
   }
 
   async function getData() {
@@ -70,6 +85,7 @@ const Home = () => {
   }
 
   useEffect(() => {
+    authed();
     getData();
   }, [searchTerm, token]);
 
