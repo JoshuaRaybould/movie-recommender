@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-query";
 import Navbar from "../components/Navbar";
 import Modal from "../components/Modal";
+import SearchRes from "../components/SearchRes";
 
 /*const query = useQuery({
    queryKey: ['all-movies'],
@@ -37,6 +38,7 @@ function Loading() {
 }
 
 type Movie = {
+  movieId: number;
   title: string;
   genres: string;
   tmdbId: number;
@@ -56,8 +58,6 @@ const Home = () => {
   const navigate = useNavigate();
 
   async function authed() {
-    console.log("HUH");
-    console.log(token);
     var res = await axios.get("/api/signin/" + token).catch(function () {
       navigate("/");
     });
@@ -91,42 +91,15 @@ const Home = () => {
 
   return (
     <>
-      <Navbar userToken={token} />
-      <div className="mb-3">
-        <input
-          className="rounded-lg outline-solid outline-1 h-7 w-80"
-          placeholder=" Search"
-          onChange={(e) => {
-            debounced(e.target.value);
-          }}
-        />
-      </div>
-      <div className="w-full flex h-full">
+      <Navbar userToken={token} searchFunc={debounced} />
+
+      <div className="w-full flex h-full justify-center">
         {isLoading ? (
           <div className="w-full flex h-200 items-center justify-center">
             <Loading />
           </div>
         ) : (
-          <div className="grid grid-cols-4 grid-rows-2  justify-center content-normal gap-3">
-            {movies.map((item: Movie) => (
-              <div className="bottom-0" key={item.tmdbId}>
-                <img
-                  className="ml-auto mr-auto"
-                  src={`https://image.tmdb.org/t/p/w200${item.picUrl}`}
-                />
-                <span className="block w-50 overflow-hidden text-ellipsis text-wrap break-normal">
-                  {item.title}
-                </span>
-                <div>
-                  <Modal
-                    movieId={item.tmdbId}
-                    movieTitle={item.title}
-                    prevRating={null}
-                  ></Modal>
-                </div>
-              </div>
-            ))}
-          </div>
+          <SearchRes movies={movies} token={token}></SearchRes>
         )}
       </div>
     </>
