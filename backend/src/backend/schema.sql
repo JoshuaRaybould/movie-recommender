@@ -1,17 +1,15 @@
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     user_id INTEGER PRIMARY KEY,
     user_token TEXT
 ) STRICT;
 
-CREATE TABLE movies (
+CREATE TABLE IF NOT EXISTS movies (
     movie_id integer PRIMARY KEY,
     title TEXT NOT NULL,
-    genres TEXT,
-    imdb_id INTEGER,
-    tmdb_id INTEGER
+    genres TEXT
 ) STRICT;
 
-CREATE TABLE ratings (
+CREATE TABLE IF NOT EXISTS ratings (
     rating_id INTEGER PRIMARY KEY,
     user_id INTEGER NOT NULL,
     movie_id integer NOT NULL,
@@ -20,3 +18,9 @@ CREATE TABLE ratings (
     FOREIGN KEY (movie_id) REFERENCES movies(movie_id)
 ) STRICT;
 
+CREATE TABLE IF NOT EXISTS links (
+    movie_id INTEGER PRIMARY KEY,
+    imdb_id INTEGER,
+    tmdb_id Integer,
+    FOREIGN KEY (movie_id) REFERENCES movies (movie_id)
+) STRICT;

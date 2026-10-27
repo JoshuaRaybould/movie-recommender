@@ -2,6 +2,8 @@ import os
 import sqlite3
 
 import requests
+from backend.db import ConnectionDep
+from backend.repository import get_movie_by_title
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -20,13 +22,14 @@ class Movie(BaseModel):
     tmdbId: int
 
 
-@app.get("/{userToken}")
-def index(userToken: str):
+@app.get("/{user_token}")
+def index(user_token: str, con: ConnectionDep):
+    movies = get_movies(con)
     connection = sqlite3.connect("movie.db")
     cursor = connection.cursor()
     cursor.execute(
         "SELECT movies.movieId, title, genres, imdbId, tmdbId, rating FROM movies INNER JOIN links on movies.movieId = links.movieId LEFT OUTER JOIN ratings on movies.movieId = ratings.movieId AND ratings.userToken = ? LIMIT 8",
-        (userToken,),
+        (user_token,),
     )
     movies = cursor.fetchall()
     connection.close()
@@ -44,22 +47,10 @@ def index(userToken: str):
     return movies
 
 
-@app.get("/movies/{movTitle}/{userToken}")
-def search(movTitle: str, userToken):
-    print(userToken)
-    connection = sqlite3.connect("movie.db")
-    cursor = connection.cursor()
-    cursor.execute("SELECT * FROM ratings WHERE userToken = ?", (userToken,))
-    rates = cursor.fetchall()
-    cursor.execute(
-        "SELECT movies.movieId, title, genres, imdbId, tmdbId, rating FROM movies INNER JOIN links on movies.movieID = links.movieID LEFT OUTER JOIN ratings on movies.movieId = ratings.movieId AND ratings.userToken = ? WHERE title LIKE ? LIMIT 8",
-        (
-            userToken,
-            "%" + movTitle + "%",
-        ),
-    )
-    movies = cursor.fetchall()
-    connection.close()
+@app.get("/movies/{mov_title}/{user_token}")
+def search(movie_title: str, user_token, con: ConnectionDep):
+    movies = get_movie_by_title(con, movie_title, user_token)
+
     movies = [
         {
             "movieId": movieId,
@@ -75,7 +66,7 @@ def search(movTitle: str, userToken):
 
 
 @app.post("/signup/{userToken}")
-def rate(userToken: str):
+def signup(userToken: str, con: ConnectionDep):
     connection = sqlite3.connect("movie.db")
     cursor = connection.cursor()
     cursor.execute("SELECT * FROM users WHERE userToken = ?", (userToken,))
@@ -89,7 +80,7 @@ def rate(userToken: str):
 
 
 @app.get("/signin/{userToken}")
-def signin(userToken: str):
+def signin(userToken: str, con: ConnectionDep):
     connection = sqlite3.connect("movie.db")
     cursor = connection.cursor()
     cursor.execute("SELECT * FROM users WHERE userToken = ?", (userToken,))
@@ -101,7 +92,7 @@ def signin(userToken: str):
 
 
 @app.post("/rate/{userToken}/{movieId}/{rating}")
-def rate(userToken: str, movieId: int, rating: float):
+def rate(userToken: str, movieId: int, rating: float, con: ConnectionDep):
     connection = sqlite3.connect("movie.db")
     cursor = connection.cursor()
     cursor.execute("SELECT * FROM movies WHERE movieId = ?", (movieId,))
@@ -158,7 +149,7 @@ def trainModel():
 
 
 @app.get("/recommendation/{userToken}")
-def getRecommendation(userToken: str):
+def getRecommendation(userToken: str, conn: ConnectionDep):
     rec = getRec(currentModel, userToken)
     recId = rec[1]
 
