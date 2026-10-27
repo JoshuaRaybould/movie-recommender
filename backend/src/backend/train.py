@@ -3,8 +3,11 @@ from sklearn.model_selection import train_test_split as sk_train_test_split
 from surprise import SVD, Dataset, Reader, accuracy
 from surprise.model_selection import cross_validate, train_test_split
 
+from backend.db import DATA_FOLDER
+
 # Load our dataset
-df = pd.read_csv("../ml-latest-small/ratings.csv")
+
+df = pd.read_csv(DATA_FOLDER + "ratings.csv")
 
 # Split into a training set and test set
 trainset, testset = sk_train_test_split(df, test_size=0.10)

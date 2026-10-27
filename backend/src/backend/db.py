@@ -8,6 +8,7 @@ from typing import Annotated
 from fastapi import Depends
 
 DB_PATH = os.environ.get("DATABASE_PATH", "movies.db")
+DATA_FOLDER = os.environ.get("MOVIE_DATA_PATH", "../ml-latest-small/")
 
 
 def get_clean_int(val: str) -> int | None:
@@ -27,20 +28,20 @@ def initialise_db():
 
     c.executescript(sql_script)
 
-    with open("../ml-latest-small/movies.csv", "r") as movData:
+    with open(DATA_FOLDER + "movies.csv", "r") as movData:
         dr = csv.DictReader(movData)
-        to_ins = [(get_clean_int(i["movieId"]), i["title"], i["genres"]) for i in dr]
+        to_ins = [(int(i["movieId"]), i["title"], i["genres"]) for i in dr]
 
     c.executemany(
         "INSERT OR IGNORE INTO movies (movie_id, title, genres) VALUES (?, ?, ?)",
         to_ins,
     )
 
-    with open("../ml-latest-small/links.csv", "r") as linkData:
+    with open(DATA_FOLDER + "links.csv", "r") as linkData:
         dr = csv.DictReader(linkData)
         to_ins = [
             (
-                get_clean_int(i["movieId"]),
+                int(i["movieId"]),
                 get_clean_int(i["imdbId"]),
                 get_clean_int(i["tmdbId"]),
             )

@@ -15,12 +15,12 @@ n_factors = [20, 25, 30, 45]
 n_epochs = [15, 25]
 
 # Prepare the data for reading and read it
-reader = Reader(rating_scale=(0.5,5))
+reader = Reader(rating_scale=(0.5, 5))
 trainData = Dataset.load_from_df(trainset[["userId", "movieId", "rating"]], reader)
 testData = Dataset.load_from_df(testset[["userId", "movieId", "rating"]], reader)
 
 folds = 5
-bestRMSE = float('infinity')
+bestRMSE = float("infinity")
 chosenFactor = -1
 chosenEpoch = -1
 
@@ -28,9 +28,15 @@ chosenEpoch = -1
 for factorChoice in n_factors:
     for epochChoice in n_epochs:
         svd = SVD(n_factors=factorChoice, n_epochs=epochChoice)
-        print("Current iteration we are using " + str(factorChoice) + " factors and " + str(epochChoice) + " epochs")
-        res = cross_validate(svd, trainData, measures=['RMSE'], cv=folds)
-        curMeanRMSE = sum(res['test_rmse'])/folds
+        print(
+            "Current iteration we are using "
+            + str(factorChoice)
+            + " factors and "
+            + str(epochChoice)
+            + " epochs"
+        )
+        res = cross_validate(svd, trainData, measures=["RMSE"], cv=folds)
+        curMeanRMSE = sum(res["test_rmse"]) / folds
         print(curMeanRMSE)
 
         if curMeanRMSE < bestRMSE:
@@ -39,7 +45,13 @@ for factorChoice in n_factors:
             chosenEpoch = epochChoice
 
 # Fit the model with our chosen hyperparameters to the training set
-print("We chose to use " + str(chosenFactor) + " factors and " + str(chosenEpoch) + " epochs")
+print(
+    "We chose to use "
+    + str(chosenFactor)
+    + " factors and "
+    + str(chosenEpoch)
+    + " epochs"
+)
 print(chosenFactor)
 print(chosenEpoch)
 movieData = Dataset.load_from_df(df[["userId", "movieId", "rating"]], reader)
@@ -58,12 +70,9 @@ accuracy.rmse(predictions)
 svd.fit(movieData.build_full_trainset())
 
 
-
 # svd.fit(trainset)
 # predictions = svd.test(testset)
 # accuracy.rmse(predictions)
 
 # trainset = movieData.build_full_trainset()
 # svd.fit(trainSet)
-
-
