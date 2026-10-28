@@ -60,8 +60,11 @@ def initialise_db():
 
 def get_connection():
     db = sqlite3.connect(DB_PATH)
-
-    return db
+    db.row_factory = sqlite3.Row
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 ConnectionDep = Annotated[Connection, Depends(get_connection)]
@@ -69,8 +72,8 @@ ConnectionDep = Annotated[Connection, Depends(get_connection)]
 if __name__ == "__main__":
     print("Start")
     initialise_db()
-    db = get_connection()
+    """db = get_connection()
     cur = db.cursor()
     res = cur.execute("SELECT * FROM movies")
     c = res.fetchall()
-    print(c)
+    print(c)"""

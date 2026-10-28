@@ -1,112 +1,90 @@
 import logging
-import sqlite3
-
-from dotenv import load_dotenv
-from fastapi import HTTPException
 
 from backend.db import ConnectionDep
-from backend.main import app
-from backend.repository import get_movie_by_title, get_movies
-from backend.schemas import Movie
+from backend.exceptions import UserAlreadyExistsErorr
+from backend.repository import (
+    create_rating,
+    create_user,
+    delete_rating,
+    get_movie_by_id,
+    get_movie_by_title,
+    get_movies,
+    get_user,
+)
+from backend.schemas import Movie, Rating, User
 from backend.tmdb_api import retrieve_pic
+from dotenv import load_dotenv
+from fastapi import APIRouter, HTTPException
 
 # from backend.src.backend.model import createDataset, createModel, getRec
 
-
+router = APIRouter()
 load_dotenv()  # todo
 logger = logging.getLogger(__name__)
 
 
-@app.get("/movies/{user_token}")
+def get_movie_pics(movies: list[Movie]):
+    for movie in movies:
+        if movie.tmdb_id is not None:
+            movie.pic_url = retrieve_pic(movie.tmdb_id)
+
+
+@router.get("/movies/{user_token}")
 def index(user_token: str, con: ConnectionDep):
     movies = get_movies(con, user_token)
-    if movies is None:
+    """if movies is None:
         logger.error("No movies found in database")
         raise HTTPException(status_code=500, detail="An unexpected error occured.")
-    movies = [
-        {
-            "movieId": movieId,
-            "title": title,
-            "genres": genres,
-            "tmdbId": tmdbId,
-            "picUrl": retrieve_pic(tmdbId),
-            "rating": rating,
-        }
-        for [movieId, title, genres, imdbId, tmdbId, rating] in movies
-    ]
+
+    # get_movie_pics(movies)
+"""
     return movies
 
 
-@app.get("/movies/{mov_title}/{user_token}")
+@router.get("/movies/{mov_title}/{user_token}")
 def search(movie_title: str, user_token, con: ConnectionDep) -> list[Movie]:
     movies = get_movie_by_title(con, movie_title, user_token)
-    if movies is None:
-        print("BOO")
-    if movies:
-        movies = [
-            {
-                "movieId": movieId,
-                "title": title,
-                "genres": genres,
-                "tmdbId": tmdbId,
-                "picUrl": retrieve_pic(tmdbId),
-                "rating": rating,
-            }
-            for [movieId, title, genres, imdbId, tmdbId, rating] in movies
-        ]
+
+    if movies is not None:
+        get_movie_pics(movies)
+    else:
+        movies = []
+
     return movies
 
 
-@app.post("/signup/{userToken}")
-def signup(userToken: str, con: ConnectionDep):
-    connection = sqlite3.connect("movie.db")
-    cursor = connection.cursor()
-    cursor.execute("SELECT * FROM users WHERE userToken = ?", (userToken,))
-    user = cursor.fetchall()
-    if user:
-        raise HTTPException(status_code=409, detail="duplicate token")
-    cursor.execute("INSERT INTO users(userToken) VALUES(?)", (userToken,))
-    connection.commit()
-    connection.close()
-    return userToken
-
-
-@app.get("/signin/{userToken}")
-def signin(userToken: str, con: ConnectionDep):
-    connection = sqlite3.connect("movie.db")
-    cursor = connection.cursor()
-    cursor.execute("SELECT * FROM users WHERE userToken = ?", (userToken,))
-    user = cursor.fetchall()
-    if not user:
-        raise HTTPException(status_code=404, detail="token doesn't exist")
-    connection.close()
+@router.post("/signup/{user_token}")
+def signup(user_token: str, con: ConnectionDep) -> User:
+    try:
+        user = create_user(con, user_token)
+    except UserAlreadyExistsErorr:
+        raise HTTPException(status_code=409, detail="User (token) already exists")
     return user
 
 
-@app.post("/rate/{userToken}/{movieId}/{rating}")
-def rate(userToken: str, movieId: int, rating: float, con: ConnectionDep):
-    connection = sqlite3.connect("movie.db")
-    cursor = connection.cursor()
-    cursor.execute("SELECT * FROM movies WHERE movieId = ?", (movieId,))
-    movie = cursor.fetchall()
-    if not movie:
-        raise HTTPException(status_code=404, detail="movie doesn't exist")
-    cursor.execute("SELECT * FROM users WHERE userToken = ?", (userToken,))
-    user = cursor.fetchall()
+@router.get("/signin/{user_token}")
+def signin(user_token: str, con: ConnectionDep) -> User:
+    user = get_user(con, user_token)
     if not user:
-        raise HTTPException(status_code=404, detail="user doesn't exist")
-    cursor.execute(
-        "DELETE FROM ratings WHERE userToken = ? AND movieId = ?", (userToken, movieId)
-    )
-    cursor.execute(
-        "INSERT INTO ratings(userToken, movieId,  rating) VALUES(?, ?, ?)",
-        (userToken, movieId, rating),
-    )
-    cursor.execute("SELECT * FROM ratings")
-    ratings = cursor.fetchall()
-    connection.commit()
-    connection.close()
-    return ratings
+        raise HTTPException(status_code=404, detail="User (token) doesn't exist")
+    return user
+
+
+@router.post("/rate/{user_token}/{movie_id}/{rating}")
+def rate(user_token: str, movie_id: int, rating: int, con: ConnectionDep) -> Rating:
+    movie = get_movie_by_id(con, movie_id)
+    if not movie:
+        raise HTTPException(status_code=404, detail="Movie doesn't exist")
+
+    user = get_user(con, user_token)
+    if not user:
+        raise HTTPException(status_code=404, detail="User (token) doesn't exist")
+
+    delete_rating(con, user_token, movie_id)
+    rating_obj = create_rating(con, user_token, movie_id, rating)
+    if not rating_obj:
+        raise HTTPException(status_code=500, detail="An unexpected error occured")
+    return rating_obj
 
 
 currentModel = None

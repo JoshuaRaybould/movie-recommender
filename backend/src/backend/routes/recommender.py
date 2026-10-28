@@ -1,9 +1,9 @@
-import sqlite3
+from fastapi import APIRouter
 
-from backend.db import ConnectionDep
+router = APIRouter()
 
 
-@app.post("/train/{userToken}")
+@router.post("/train/{userToken}")
 def trainModel():
     df = createDataset()
     global currentModel
@@ -11,7 +11,7 @@ def trainModel():
     return True
 
 
-@app.get("/recommendation/{userToken}")
+@router.get("/recommendation/{userToken}")
 def getRecommendation(userToken: str, conn: ConnectionDep):
     rec = getRec(currentModel, userToken)
     recId = rec[1]
