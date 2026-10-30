@@ -1,20 +1,19 @@
 import logging
 
+from dotenv import load_dotenv
+from fastapi import APIRouter, HTTPException
+
 from backend.db import ConnectionDep
-from backend.exceptions import UserAlreadyExistsErorr
 from backend.repository import (
     create_rating,
-    create_user,
     delete_rating,
     get_movie_by_id,
     get_movie_by_title,
     get_movies,
     get_user,
 )
-from backend.schemas import Movie, Rating, User
+from backend.schemas import Movie, Rating
 from backend.tmdb_api import retrieve_pic
-from dotenv import load_dotenv
-from fastapi import APIRouter, HTTPException
 
 # from backend.src.backend.model import createDataset, createModel, getRec
 
@@ -32,12 +31,12 @@ def get_movie_pics(movies: list[Movie]):
 @router.get("/movies/{user_token}")
 def index(user_token: str, con: ConnectionDep):
     movies = get_movies(con, user_token)
-    """if movies is None:
+    if not movies:
         logger.error("No movies found in database")
         raise HTTPException(status_code=500, detail="An unexpected error occured.")
 
-    # get_movie_pics(movies)
-"""
+    get_movie_pics(movies)
+
     return movies
 
 
@@ -45,29 +44,12 @@ def index(user_token: str, con: ConnectionDep):
 def search(movie_title: str, user_token, con: ConnectionDep) -> list[Movie]:
     movies = get_movie_by_title(con, movie_title, user_token)
 
-    if movies is not None:
+    if movies:
         get_movie_pics(movies)
     else:
         movies = []
 
     return movies
-
-
-@router.post("/signup/{user_token}")
-def signup(user_token: str, con: ConnectionDep) -> User:
-    try:
-        user = create_user(con, user_token)
-    except UserAlreadyExistsErorr:
-        raise HTTPException(status_code=409, detail="User (token) already exists")
-    return user
-
-
-@router.get("/signin/{user_token}")
-def signin(user_token: str, con: ConnectionDep) -> User:
-    user = get_user(con, user_token)
-    if not user:
-        raise HTTPException(status_code=404, detail="User (token) doesn't exist")
-    return user
 
 
 @router.post("/rate/{user_token}/{movie_id}/{rating}")

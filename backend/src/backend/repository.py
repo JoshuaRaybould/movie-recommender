@@ -60,6 +60,14 @@ def get_movies(con: Connection, user_token: str) -> list[Movie]:
     return list(map(Movie.model_validate, movie_dicts))
 
 
+def get_user_by_username(con: Connection, username: str) -> User | None:
+    cur = con.execute("SELECT * FROM users WHERE username = ?", (username,))
+    user = cur.fetchone()
+    if user is None:
+        return None
+    return User.model_validate(dict(user))
+
+
 def get_user(con: Connection, user_token: str) -> User:
     cur = con.cursor()
     cur.execute("SELECT * FROM users WHERE user_token = ?", (user_token,))
@@ -80,9 +88,11 @@ def create_user(con: Connection, user_token: str) -> User:
         raise UserAlreadyExistsErorr
 
 
-def get_movie_by_id(con: Connection, movie_id: int) -> Movie:
+def get_movie_by_id(con: Connection, movie_id: int) -> Movie | None:
     cur = con.execute("SELECT * FROM movies WHERE movie_id = ?", (movie_id,))
     movie = cur.fetchone()
+    if movie is None:
+        return None
     return Movie.model_validate(movie)
 
 
@@ -96,13 +106,15 @@ def delete_rating(con: Connection, user_token: str, movie_id: int):
 
 def create_rating(
     con: Connection, user_token: str, movie_id: int, rating: int
-) -> Rating:
+) -> Rating | None:
     cur = con.execute(
         "INSERT INTO ratings (user_token, movie_id,  rating) VALUES(?, ?, ?) RETURNING rating_id, movie_id, rating",
         (user_token, movie_id, rating),
     )
     rating_obj = cur.fetchone()
     con.commit()
+    if rating_obj is None:
+        return None
     return Rating.model_validate(rating_obj)
 
 

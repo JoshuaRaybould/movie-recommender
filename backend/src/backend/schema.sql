@@ -1,6 +1,9 @@
 CREATE TABLE IF NOT EXISTS users (
     user_id INTEGER PRIMARY KEY,
-    user_token TEXT UNIQUE
+    email TEXT UNIQUE,
+    username TEXT UNIQUE NOT NULL,
+    is_disabled INTEGER NOT NULL DEFAULT 0 CHECK (is_disabled IN (0, 1)),
+    created_at TEXT NOT NULL
 ) STRICT;
 
 CREATE TABLE IF NOT EXISTS movies (

@@ -20,7 +20,9 @@ class MovieAndReviews(BaseModel):
 
 class User(BaseModel):
     user_id: int
-    user_token: str
+    email: str | None = None
+    username: str
+    is_disabled: bool = False
 
 
 class Rating(BaseModel):

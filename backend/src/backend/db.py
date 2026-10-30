@@ -59,7 +59,9 @@ def initialise_db():
 
 
 def get_connection():
-    db = sqlite3.connect(DB_PATH)
+    db = sqlite3.connect(
+        DB_PATH, check_same_thread=False
+    )  # Not sure if this could have consequences
     db.row_factory = sqlite3.Row
     try:
         yield db
