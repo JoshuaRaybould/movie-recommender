@@ -1,39 +1,34 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, status
+
+from backend.ai_model import get_rec
+from backend.db import ConnectionDep
+from backend.main import get_model
+from backend.repository import get_movie_by_id
+from backend.routes.auth import GetActiveUserDep
+from backend.schemas import Movie
+from backend.tmdb_api import retrieve_pic
 
 router = APIRouter()
 
-
+"""
 @router.post("/train/{userToken}")
 def trainModel():
     df = createDataset()
     global currentModel
     currentModel = createModel(df)
     return True
+"""
 
 
 @router.get("/recommendation/{userToken}")
-def getRecommendation(userToken: str, conn: ConnectionDep):
-    rec = getRec(currentModel, userToken)
-    recId = rec[1]
+def getRecommendation(user: GetActiveUserDep, con: ConnectionDep) -> Movie | None:
+    rec = get_rec(get_model(), user.user_id)
+    rec_id = rec[1]
 
-    connection = sqlite3.connect("movie.db")
-    cursor = connection.cursor()
-    cursor.execute(
-        "SELECT movies.movieId, title, genres, imdbId, tmdbId, rating FROM movies INNER JOIN links on movies.movieId = links.movieId LEFT OUTER JOIN ratings on movies.movieId = ratings.movieId AND ratings.userToken = ? WHERE movies.movieId = ? LIMIT 1",
-        (userToken, recId),
-    )
-    movies = cursor.fetchall()
-    connection.close()
-    movies = [
-        {
-            "movieId": movieId,
-            "title": title,
-            "genres": genres,
-            "tmdbId": tmdbId,
-            "picUrl": retrievePic(tmdbId),
-            "rating": rating,
-            "expected": -rec[0],
-        }
-        for [movieId, title, genres, imdbId, tmdbId, rating] in movies
-    ]
-    return movies
+    movie = get_movie_by_id(con, rec_id)
+    if movie is None:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    if movie.tmdb_id is not None:
+        movie.pic_url = retrieve_pic(movie.tmdb_id)
+
+    return movie

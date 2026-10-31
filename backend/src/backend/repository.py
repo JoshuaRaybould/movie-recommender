@@ -1,7 +1,14 @@
 from sqlite3 import Connection, IntegrityError
 
+import pandas as pd
+
 from backend.exceptions import UserAlreadyExistsErorr
-from backend.schemas import Movie, Rating, User, UserInDB
+from backend.schemas import (
+    Movie,
+    Rating,
+    User,
+    UserInDB,
+)
 
 MOVIES_PER_PAGE = 8
 
@@ -15,11 +22,10 @@ def get_user_id(con: Connection, token: str) -> int | None:
     return user_id["user_id"]
 
 
-def get_movie_by_title(con: Connection, title: str, user_token: str) -> list[Movie]:
-    user_id = get_user_id(con, user_token)
-    cursor = con.cursor()
+def get_movie_by_title(con: Connection, title: str, user_id: int) -> list[Movie]:
+    cur = con.cursor()
 
-    cursor.execute(
+    cur.execute(
         """
         SELECT movies.movie_id, title, genres, tmdb_id, rating FROM movies 
         INNER JOIN links on movies.movie_id = links.movie_id 
@@ -34,16 +40,15 @@ def get_movie_by_title(con: Connection, title: str, user_token: str) -> list[Mov
             MOVIES_PER_PAGE,
         ),
     )
-    movies = cursor.fetchall()
+    movies = cur.fetchall()
     movie_dicts = map(dict, movies)
     return list(map(Movie.model_validate, movie_dicts))
 
 
-def get_movies(con: Connection, user_token: str) -> list[Movie]:
-    user_id = get_user_id(con, user_token)
+def get_movies(con: Connection, user_id: int) -> list[Movie]:
     cur = con.execute(
         """
-        SELECT movies.movie_id, title, genres, tmdb_id FROM movies 
+        SELECT movies.movie_id, title, genres, tmdb_id, rating FROM movies 
         INNER JOIN links on movies.movie_id = links.movie_id 
         LEFT OUTER JOIN ratings on movies.movie_id = ratings.movie_id 
         AND ratings.user_id = ? 
@@ -89,33 +94,65 @@ def create_user(con: Connection, username: str, hashed_password: str) -> User:
 
 
 def get_movie_by_id(con: Connection, movie_id: int) -> Movie | None:
-    cur = con.execute("SELECT * FROM movies WHERE movie_id = ?", (movie_id,))
+    cur = con.execute(
+        """
+        SELECT movies.movie_id, title, genres, tmdb_id, rating FROM movies 
+        INNER JOIN links on movies.movie_id = links.movie_id 
+        WHERE movies.movie_id = ? 
+        LIMIT 1"
+        """,
+        (movie_id,),
+    )
     movie = cur.fetchone()
     if movie is None:
         return None
     return Movie.model_validate(movie)
 
 
-def delete_rating(con: Connection, user_token: str, movie_id: int):
+def delete_rating(con: Connection, user_id: int, movie_id: int):
     cur = con.cursor()
     cur.execute(
-        "DELETE FROM ratings WHERE user_token = ? AND movie_id = ?",
-        (user_token, movie_id),
+        "DELETE FROM ratings WHERE user_id = ? AND movie_id = ?",
+        (user_id, movie_id),
     )
 
 
 def create_rating(
-    con: Connection, user_token: str, movie_id: int, rating: int
+    con: Connection, user_id: int, movie_id: int, rating: int
 ) -> Rating | None:
     cur = con.execute(
-        "INSERT INTO ratings (user_token, movie_id,  rating) VALUES(?, ?, ?) RETURNING rating_id, movie_id, rating",
-        (user_token, movie_id, rating),
+        "INSERT INTO ratings (user_id, movie_id,  rating) VALUES(?, ?, ?) RETURNING rating_id, movie_id, rating",
+        (user_id, movie_id, rating),
     )
     rating_obj = cur.fetchone()
     con.commit()
     if rating_obj is None:
         return None
     return Rating.model_validate(rating_obj)
+
+
+def get_unreviewed_movies(con: Connection, user_id: int) -> list[Movie]:
+    cur = con.execute(
+        """
+        SELECT movies.movie_id, title, genres, tmdb_id, rating FROM movies
+        LEFT OUTER JOIN ratings on movies.movie_id = ratings.movie_id 
+        AND ratings.user_id = ? 
+        WHERE ratings.rating IS NULL
+        """,
+        (user_id,),
+    )
+    unreviwed = cur.fetchall()
+    movie_dicts = map(dict, unreviwed)
+
+    return list(map(Movie.model_validate, movie_dicts))
+
+
+def get_ids_to_reviews_df(con: Connection) -> pd.DataFrame:
+    df2 = pd.read_sql_query(
+        "SELECT users.user_id, movie_id, rating from ratings INNER JOIN users ON ratings.user_id = users.user_id",
+        con,
+    )
+    return df2
 
 
 from backend.db import get_connection

@@ -9,8 +9,9 @@ class Movie(BaseModel):
     pic_url: str | None = None
 
 
-class MovieAndReviews(Movie):
-    review_score: int | None = None
+class MovieAndReview(Movie):
+    user_id: int
+    review_score: int
 
 
 class User(BaseModel):
@@ -40,3 +41,9 @@ class Rating(BaseModel):
     movie_id: int
     rating: int
     # created_at todo
+
+
+class UserMovieRating(BaseModel):
+    user_id: int
+    movie_id: int
+    rating: int

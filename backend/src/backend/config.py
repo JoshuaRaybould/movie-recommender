@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     app_name: str = "Movie Recommender"
     secret_key: str
     database_path: str
-    movie_data: str
+    movie_data_path: str
     access_token_expire: int = 30
     algorithm: str = "HS256"
 

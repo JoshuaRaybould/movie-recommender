@@ -1,7 +1,6 @@
 import logging
 
-from dotenv import load_dotenv
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, status
 
 from backend.db import ConnectionDep
 from backend.repository import (
@@ -10,15 +9,14 @@ from backend.repository import (
     get_movie_by_id,
     get_movie_by_title,
     get_movies,
-    get_user,
 )
+from backend.routes.auth import GetActiveUserDep
 from backend.schemas import Movie, Rating
 from backend.tmdb_api import retrieve_pic
 
 # from backend.src.backend.model import createDataset, createModel, getRec
 
 router = APIRouter()
-load_dotenv()  # todo
 logger = logging.getLogger(__name__)
 
 
@@ -28,21 +26,24 @@ def get_movie_pics(movies: list[Movie]):
             movie.pic_url = retrieve_pic(movie.tmdb_id)
 
 
-@router.get("/movies/{user_token}")
-def index(user_token: str, con: ConnectionDep):
-    movies = get_movies(con, user_token)
+@router.get("/movies")
+def index(user: GetActiveUserDep, con: ConnectionDep):
+    movies = get_movies(con, user.user_id)
     if not movies:
         logger.error("No movies found in database")
-        raise HTTPException(status_code=500, detail="An unexpected error occured.")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occured.",
+        )
 
     get_movie_pics(movies)
 
     return movies
 
 
-@router.get("/movies/{mov_title}/{user_token}")
-def search(movie_title: str, user_token, con: ConnectionDep) -> list[Movie]:
-    movies = get_movie_by_title(con, movie_title, user_token)
+@router.get("/movies/{mov_title}")
+def search(movie_title: str, user: GetActiveUserDep, con: ConnectionDep) -> list[Movie]:
+    movies = get_movie_by_title(con, movie_title, user.user_id)
 
     if movies:
         get_movie_pics(movies)
@@ -52,20 +53,23 @@ def search(movie_title: str, user_token, con: ConnectionDep) -> list[Movie]:
     return movies
 
 
-@router.post("/rate/{user_token}/{movie_id}/{rating}")
-def rate(user_token: str, movie_id: int, rating: int, con: ConnectionDep) -> Rating:
+@router.post("/rate/{movie_id}/{rating}")
+def rate(
+    movie_id: int, rating: int, user: GetActiveUserDep, con: ConnectionDep
+) -> Rating:
     movie = get_movie_by_id(con, movie_id)
     if not movie:
-        raise HTTPException(status_code=404, detail="Movie doesn't exist")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Movie doesn't exist"
+        )
 
-    user = get_user(con, user_token)
-    if not user:
-        raise HTTPException(status_code=404, detail="User (token) doesn't exist")
-
-    delete_rating(con, user_token, movie_id)
-    rating_obj = create_rating(con, user_token, movie_id, rating)
+    delete_rating(con, user.user_id, movie_id)
+    rating_obj = create_rating(con, user.user_id, movie_id, rating)
     if not rating_obj:
-        raise HTTPException(status_code=500, detail="An unexpected error occured")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occured",
+        )
     return rating_obj
 
 

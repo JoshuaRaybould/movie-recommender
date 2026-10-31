@@ -9,7 +9,7 @@ from fastapi import Depends
 from backend.config import get_settings
 
 DB_PATH = get_settings().database_path  # todo: might want to replace these
-DATA_FOLDER = get_settings().movie_data
+MOVIE_DATA_PATH = get_settings().movie_data_path
 
 
 def get_clean_int(val: str) -> int | None:
@@ -29,7 +29,7 @@ def initialise_db():
 
     c.executescript(sql_script)
 
-    with open(DATA_FOLDER + "movies.csv", "r") as movData:
+    with open(MOVIE_DATA_PATH + "movies.csv", "r") as movData:
         dr = csv.DictReader(movData)
         to_ins = [(int(i["movieId"]), i["title"], i["genres"]) for i in dr]
 
@@ -38,7 +38,7 @@ def initialise_db():
         to_ins,
     )
 
-    with open(DATA_FOLDER + "links.csv", "r") as linkData:
+    with open(MOVIE_DATA_PATH + "links.csv", "r") as linkData:
         dr = csv.DictReader(linkData)
         to_ins = [
             (
