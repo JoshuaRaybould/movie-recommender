@@ -1,5 +1,4 @@
 import csv
-import os
 import sqlite3
 from importlib.resources import files
 from sqlite3 import Connection
@@ -7,8 +6,10 @@ from typing import Annotated
 
 from fastapi import Depends
 
-DB_PATH = os.environ.get("DATABASE_PATH", "movies.db")
-DATA_FOLDER = os.environ.get("MOVIE_DATA_PATH", "../ml-latest-small/")
+from backend.config import get_settings
+
+DB_PATH = get_settings().database_path  # todo: might want to replace these
+DATA_FOLDER = get_settings().movie_data
 
 
 def get_clean_int(val: str) -> int | None:

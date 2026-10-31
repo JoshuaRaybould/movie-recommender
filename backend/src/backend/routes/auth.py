@@ -1,53 +1,121 @@
+from datetime import UTC, datetime, timedelta
+from sqlite3 import Connection
 from typing import Annotated
 
+import jwt
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from jwt.exceptions import InvalidTokenError
+from pwdlib import PasswordHash
 
+from backend.config import SettingDep
 from backend.db import ConnectionDep
-from backend.repository import get_user_by_username
-from backend.schemas import User
+from backend.exceptions import UserAlreadyExistsErorr
+from backend.repository import create_user, get_user_by_username
+from backend.schemas import Token, User, UserCreate, UserInDB
 
 router = APIRouter()
 
+password_hash = PasswordHash.recommended()
+DUMMY_HASH = password_hash.hash("dummypassword")
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-"""
-@router.post("/signup/{user_token}")
-def signup(user_token: str, con: ConnectionDep) -> User:
-    try:
-        user = create_user(con, user_token)
-    except UserAlreadyExistsErorr:
-        raise HTTPException(status_code=409, detail="User (token) already exists")
-    return user
+
+def verify_password(plain_password, hashed_password) -> bool:
+    return password_hash.verify(plain_password, hashed_password)
 
 
-@router.get("/signin/{user_token}")
-def signin(user_token: str, con: ConnectionDep) -> User:
-    user = get_user(con, user_token)
+def get_password_hash(password) -> str:
+    return password_hash.hash(password)
+
+
+def authenticate_user(con: Connection, username: str, password: str) -> UserInDB | None:
+    user = get_user_by_username(con, username)
     if not user:
-        raise HTTPException(status_code=404, detail="User (token) doesn't exist")
+        verify_password(password, DUMMY_HASH)
+        return None
+    if not verify_password(password, user.hashed_password):
+        return None
     return user
-"""
 
 
-def decode_token(token):  # -> User
-    return "tok"
+def create_access_token(settings: SettingDep, data: dict) -> str:
+    expires_delta = timedelta(minutes=settings.access_token_expire)
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.now(UTC) + expires_delta
+    else:
+        expire = datetime.now(UTC) + timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(
+        to_encode, settings.secret_key, algorithm=settings.algorithm
+    )
+    return encoded_jwt
 
 
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
-    user = decode_token(token)
+@router.post("/token")
+async def login(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    con: ConnectionDep,
+    settings: SettingDep,
+) -> Token:
+    user = authenticate_user(con, form_data.username, form_data.password)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated",
+            detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+    access_token = create_access_token(settings, data={"sub": user.username})
+
+    return Token(access_token=access_token, token_type="bearer")
+
+
+@router.post("/signup")
+def signup(user_details: UserCreate, con: ConnectionDep, settings: SettingDep) -> Token:
+    hashed_password = get_password_hash(user_details.password)
+    try:
+        user = create_user(con, user_details.username, hashed_password)
+    except UserAlreadyExistsErorr:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Username taken"
+        )
+
+    access_token = create_access_token(settings, data={"sub": user.username})
+
+    return Token(access_token=access_token, token_type="bearer")
+
+
+def get_current_user(
+    token: Annotated[str, Depends(oauth2_scheme)],
+    settings: SettingDep,
+    con: ConnectionDep,
+) -> User:
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(
+            token, settings.secret_key, algorithms=[settings.algorithm]
+        )
+        username = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+    except InvalidTokenError:
+        raise credentials_exception
+    user = get_user_by_username(con, username)
+    if user is None:
+        raise credentials_exception
     return user
 
 
-async def get_current_active_user(
+def get_current_active_user(
     current_user: Annotated[User, Depends(get_current_user)],
-):
+) -> User:
     if current_user.is_disabled:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user"
@@ -56,39 +124,7 @@ async def get_current_active_user(
 
 
 @router.get("/users/me")
-async def read_users_me(
+def read_users_me(
     current_user: Annotated[User, Depends(get_current_active_user)],
-):
+) -> User:
     return current_user
-
-
-def hash_password(password) -> str | None:
-    if password is None:
-        return None
-    return password  # todo
-
-
-@router.post("/token")
-async def login(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()], con: ConnectionDep
-):
-    incorrect_login_message = "Incorrect username or password"
-    user = get_user_by_username(con, form_data.username)
-    if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=incorrect_login_message,
-        )
-
-    hashed_password = hash_password(form_data.password)
-
-    if hashed_password is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=incorrect_login_message,
-        )
-
-    return {"access_token": user.username, "token_type": "bearer"}
-
-
-# todo, presumabely the access token should be a proper thing

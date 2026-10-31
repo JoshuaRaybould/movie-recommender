@@ -1,5 +1,7 @@
 from functools import lru_cache
+from typing import Annotated
 
+from fastapi import Depends
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -8,6 +10,8 @@ class Settings(BaseSettings):
     secret_key: str
     database_path: str
     movie_data: str
+    access_token_expire: int = 30
+    algorithm: str = "HS256"
 
     model_config = SettingsConfigDict(env_file=".env")
 
@@ -15,3 +19,6 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings():
     return Settings()  # type: ignore
+
+
+SettingDep = Annotated[Settings, Depends(get_settings)]

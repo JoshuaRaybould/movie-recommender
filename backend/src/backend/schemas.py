@@ -9,12 +9,7 @@ class Movie(BaseModel):
     pic_url: str | None = None
 
 
-class MovieAndReviews(BaseModel):
-    movie_id: int
-    title: str
-    genres: str
-    tmdb_id: int | None = None
-    pic_url: str | None = None
+class MovieAndReviews(Movie):
     review_score: int | None = None
 
 
@@ -23,6 +18,21 @@ class User(BaseModel):
     email: str | None = None
     username: str
     is_disabled: bool = False
+
+
+class UserInDB(User):
+    hashed_password: str
+
+
+class UserCreate(BaseModel):
+    username: str
+    password: str
+    email: str | None = None
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
 
 
 class Rating(BaseModel):

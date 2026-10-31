@@ -1,7 +1,7 @@
-from sqlite3 import Connection
+from sqlite3 import Connection, IntegrityError
 
 from backend.exceptions import UserAlreadyExistsErorr
-from backend.schemas import Movie, Rating, User
+from backend.schemas import Movie, Rating, User, UserInDB
 
 MOVIES_PER_PAGE = 8
 
@@ -60,12 +60,12 @@ def get_movies(con: Connection, user_token: str) -> list[Movie]:
     return list(map(Movie.model_validate, movie_dicts))
 
 
-def get_user_by_username(con: Connection, username: str) -> User | None:
+def get_user_by_username(con: Connection, username: str) -> UserInDB | None:
     cur = con.execute("SELECT * FROM users WHERE username = ?", (username,))
     user = cur.fetchone()
     if user is None:
         return None
-    return User.model_validate(dict(user))
+    return UserInDB.model_validate(dict(user))
 
 
 def get_user(con: Connection, user_token: str) -> User:
@@ -75,16 +75,16 @@ def get_user(con: Connection, user_token: str) -> User:
     return User.model_validate(dict(user))
 
 
-def create_user(con: Connection, user_token: str) -> User:
+def create_user(con: Connection, username: str, hashed_password: str) -> User:
     try:
         cur = con.execute(
-            "INSERT INTO users (user_token) VALUES(?) RETURNING user_id, user_token",
-            (user_token,),
+            "INSERT INTO users (username, hashed_password) VALUES(?, ?) RETURNING user_id, username, email",
+            (username, hashed_password),
         )
         user = cur.fetchone()
         con.commit()
         return User.model_validate(dict(user))
-    except:
+    except IntegrityError:
         raise UserAlreadyExistsErorr
 
 

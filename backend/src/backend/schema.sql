@@ -2,8 +2,9 @@ CREATE TABLE IF NOT EXISTS users (
     user_id INTEGER PRIMARY KEY,
     email TEXT UNIQUE,
     username TEXT UNIQUE NOT NULL,
+    hashed_password TEXT UNIQUE NOT NULL,
     is_disabled INTEGER NOT NULL DEFAULT 0 CHECK (is_disabled IN (0, 1)),
-    created_at TEXT NOT NULL
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) STRICT;
 
 CREATE TABLE IF NOT EXISTS movies (
