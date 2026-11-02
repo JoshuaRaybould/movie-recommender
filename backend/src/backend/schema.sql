@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS ratings (
     rating_id INTEGER PRIMARY KEY,
     user_id INTEGER NOT NULL,
     movie_id INTEGER NOT NULL,
-    rating INTEGER NOT NULL CHECK (rating > 0 AND rating <= 5),
+    rating INTEGER NOT NULL CHECK (rating > 0 AND rating <= 10),
     created_at TEXT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (movie_id) REFERENCES movies(movie_id)

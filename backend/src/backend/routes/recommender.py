@@ -1,6 +1,6 @@
+from backend.ai_model import get_rec
 from fastapi import APIRouter, HTTPException, status
 
-from backend.ai_model import get_rec
 from backend.db import ConnectionDep
 from backend.main import get_model
 from backend.repository import get_movie_by_id

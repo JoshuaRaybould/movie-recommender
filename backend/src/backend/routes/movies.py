@@ -1,5 +1,7 @@
 import logging
 
+from fastapi import APIRouter, HTTPException, status
+
 from backend.db import ConnectionDep
 from backend.repository import (
     create_rating,
@@ -11,7 +13,6 @@ from backend.repository import (
 from backend.routes.auth import GetActiveUserDep
 from backend.schemas import Movie, Rating
 from backend.tmdb_api import retrieve_pic
-from fastapi import APIRouter, HTTPException, status
 
 # from backend.src.backend.model import createDataset, createModel, getRec
 

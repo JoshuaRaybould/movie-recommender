@@ -13,6 +13,7 @@ USER_OFFSET = 400000
 MOVIE_DATA_PATH = get_settings().movie_data_path
 
 
+# Todo: we want ratings out of 10 since that is how we'll store it in db and may want to improve this model too!
 # First we need to get collect the data from both our MovieLens dataset and our SQL database which has our users and combine into a dataframe we can use
 def create_dataset(con: Connection) -> pd.DataFrame:
     df1 = pd.read_csv(MOVIE_DATA_PATH + "movies.csv")
