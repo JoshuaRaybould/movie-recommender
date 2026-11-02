@@ -1,7 +1,5 @@
 import logging
 
-from fastapi import APIRouter, HTTPException, status
-
 from backend.db import ConnectionDep
 from backend.repository import (
     create_rating,
@@ -13,6 +11,7 @@ from backend.repository import (
 from backend.routes.auth import GetActiveUserDep
 from backend.schemas import Movie, Rating
 from backend.tmdb_api import retrieve_pic
+from fastapi import APIRouter, HTTPException, status
 
 # from backend.src.backend.model import createDataset, createModel, getRec
 
@@ -27,8 +26,8 @@ def get_movie_pics(movies: list[Movie]):
 
 
 @router.get("/movies")
-def index(user: GetActiveUserDep, con: ConnectionDep):
-    movies = get_movies(con, user.user_id)
+def index(con: ConnectionDep):
+    movies = get_movies(con, 1)
     if not movies:
         logger.error("No movies found in database")
         raise HTTPException(

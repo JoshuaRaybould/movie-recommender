@@ -22,7 +22,7 @@ def trainModel():
 
 @router.get("/recommendation/{userToken}")
 def getRecommendation(user: GetActiveUserDep, con: ConnectionDep) -> Movie | None:
-    rec = get_rec(get_model(), user.user_id)
+    rec = get_rec(get_model(), con, user)
     rec_id = rec[1]
 
     movie = get_movie_by_id(con, rec_id)

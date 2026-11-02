@@ -1,15 +1,15 @@
-import os
-
 import requests
 
-TMDB_API_KEY = os.getenv("TMDB_API_KEY", "")  # todo
+from backend.config import get_settings
+
+TMDB_API_KEY = get_settings().tmdb_api_key
 
 
 # Get picture from TMDB
-def retrieve_pic(tmdbId: int):
-    url = "https://api.themoviedb.org/3/movie/" + str(tmdbId)
+def retrieve_pic(tmdb_id: int):
+    url = "https://api.themoviedb.org/3/movie/" + str(tmdb_id)
     headers = {
-        "Authorization": TMDB_API_KEY,
+        "Authorization": f"Bearer {TMDB_API_KEY}",
         "accept": "application/json",
     }
     try:

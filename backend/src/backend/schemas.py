@@ -1,7 +1,17 @@
-from pydantic import BaseModel
+from pydantic import AliasGenerator, BaseModel, ConfigDict
+from pydantic.alias_generators import to_camel, to_snake
 
 
-class Movie(BaseModel):
+class CamelModel(BaseModel):
+    model_config = ConfigDict(
+        alias_generator=AliasGenerator(
+            validation_alias=to_snake,
+            serialization_alias=to_camel,
+        )
+    )
+
+
+class Movie(CamelModel):
     movie_id: int
     title: str
     genres: str
@@ -14,7 +24,7 @@ class MovieAndReview(Movie):
     review_score: int
 
 
-class User(BaseModel):
+class User(CamelModel):
     user_id: int
     email: str | None = None
     username: str
@@ -25,25 +35,25 @@ class UserInDB(User):
     hashed_password: str
 
 
-class UserCreate(BaseModel):
+class UserCreate(CamelModel):
     username: str
     password: str
     email: str | None = None
 
 
-class Token(BaseModel):
+class Token(CamelModel):
     access_token: str
     token_type: str
 
 
-class Rating(BaseModel):
+class Rating(CamelModel):
     rating_id: int
     movie_id: int
     rating: int
     # created_at todo
 
 
-class UserMovieRating(BaseModel):
+class UserMovieRating(CamelModel):
     user_id: int
     movie_id: int
     rating: int

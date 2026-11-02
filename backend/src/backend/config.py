@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     movie_data_path: str
     access_token_expire: int = 30
     algorithm: str = "HS256"
+    tmdb_api_key: str
 
     model_config = SettingsConfigDict(env_file=".env")
 
