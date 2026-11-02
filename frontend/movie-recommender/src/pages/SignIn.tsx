@@ -1,26 +1,32 @@
-import axios from "axios";
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-
+import { fullFetch } from "../api";
+import { TokenSchema } from "../types";
+import type { Token } from "../types";
 const SignIn = () => {
-  const [token, setToken] = useState<string>("");
+  const [username, setUsername] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
   const [failSignIn, setFailSignIn] = useState<boolean>(false);
 
   const navigate = useNavigate();
 
   async function attemptSignIn() {
-    if (token.length) {
-      var res = await axios.get("/api/signin/" + token).catch(function () {
-        setFailSignIn(true);
-        return;
-      });
-      if (res && res.data) {
-        console.log(res.data);
-        navigate(`/${token}`);
-      } else {
-        setFailSignIn(true);
-      }
+    const formData = new FormData();
+    formData.append("username", username);
+    formData.append("password", password);
+    const options = {
+      method: "POST",
+      //headers: new Headers({ "Content-type": "application/json" }),
+      body: formData,
+    };
+
+    let res = await fullFetch<Token>("/token", options, TokenSchema);
+    if (res && res.accessToken) {
+      localStorage.setItem("token", res.accessToken);
+      navigate(`/movies`);
+    } else {
+      setFailSignIn(true);
     }
   }
 
@@ -33,12 +39,19 @@ const SignIn = () => {
       <input
         name="myInput"
         className="flex rounded-xs pl-2 outline-1 h-9 mt-3"
-        placeholder="Enter name"
+        placeholder="Username"
         onChange={(e) => {
-          setToken(e.target.value);
+          setUsername(e.target.value);
         }}
       />
-
+      <input
+        name="myInput"
+        className="flex rounded-xs pl-2 outline-1 h-9 mt-3"
+        placeholder="Password"
+        onChange={(e) => {
+          setPassword(e.target.value);
+        }}
+      />
       <div className="flex">
         <button
           onClick={attemptSignIn}

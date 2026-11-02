@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axios, { type AxiosResponse } from "axios";
 import { useDebouncedCallback } from "use-debounce";
 import {
   QueryClient,

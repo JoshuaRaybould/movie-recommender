@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axios, { type AxiosResponse } from "axios";
 import { useDebouncedCallback } from "use-debounce";
 import {
   QueryClient,
@@ -26,10 +25,9 @@ type Movie = {
 
 type results = {
   movies: Array<Movie>;
-  token: string;
 };
 
-const SearchRes = ({ movies, token }: results) => {
+const SearchRes = ({ movies }: results) => {
   return (
     <div className="grid grid-cols-4 grid-rows-2 justify-center content-normal gap-3 h-200 w-200">
       {movies.map((item: Movie) => (
@@ -43,7 +41,6 @@ const SearchRes = ({ movies, token }: results) => {
           />
           <div>
             <Modal
-              token={token}
               movieId={item.movieId}
               movieTitle={item.title}
               prevRating={item.rating}

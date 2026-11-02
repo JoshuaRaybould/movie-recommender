@@ -11,7 +11,7 @@ function App() {
       <Routes>
         <Route path="/" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
-        <Route path="/:userToken" element={<Home />} />
+        <Route path="/movies" element={<Home />} />
         <Route
           path="/:userToken/recommendations"
           element={<Recommendations />}

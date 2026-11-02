@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axios, { type AxiosResponse } from "axios";
 import { useDebouncedCallback } from "use-debounce";
 import {
   QueryClient,
@@ -10,7 +9,9 @@ import {
 import Navbar from "../components/Navbar";
 import Modal from "../components/Modal";
 import SearchRes from "../components/SearchRes";
-
+import { fullFetch } from "../api";
+import { MovieSchema } from "../types";
+import type { Movie } from "../types";
 /*const query = useQuery({
    queryKey: ['all-movies'],
    queryFn: 
@@ -37,61 +38,42 @@ function Loading() {
   );
 }
 
-type Movie = {
-  movieId: number;
-  title: string;
-  genres: string;
-  tmdbId: number;
-  picUrl: string;
-  rating: number | null;
-};
-
 const Home = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const debounced = useDebouncedCallback((value) => {
     setSearchTerm(value);
   }, 700);
-  const [token, setToken] = useState<string>("");
-  const [movies, setMovies] = useState([]);
-
-  const navigate = useNavigate();
-
-  async function authed() {
-    var res = await axios.get("/api/signin/" + token).catch(function () {
-      navigate("/");
-    });
-    if (!res || (res && !res.data)) {
-      navigate("/");
-    }
-  }
-
-  let params = useParams();
-
-  if (params && params.userToken && token == "") {
-    setToken(params.userToken);
-    authed();
-  }
+  const [movies, setMovies] = useState<Movie[]>([]);
 
   async function getData() {
     setIsLoading(true);
-    if (searchTerm) {
-      setMovies((await axios.get(`/api/movies/${searchTerm}/${token}`)).data);
-    } else {
-      setMovies((await axios.get(`/api/${token}`)).data);
+    try {
+      let movies;
+      if (searchTerm) {
+        movies = await fullFetch(
+          `/movies/{searchTerm}`,
+          {},
+          MovieSchema.array(),
+        );
+      } else {
+        movies = await fullFetch("/movies", {}, MovieSchema.array());
+      }
+      setMovies(movies);
+    } catch (error) {
+      console.log(error); // todo
     }
 
     setIsLoading(false);
   }
 
   useEffect(() => {
-    authed();
     getData();
-  }, [searchTerm, token]);
+  }, [searchTerm]);
 
   return (
     <>
-      <Navbar userToken={token} searchFunc={debounced} />
+      <Navbar searchFunc={debounced} />
 
       <div className="w-full flex h-full justify-center">
         {isLoading ? (
@@ -99,7 +81,7 @@ const Home = () => {
             <Loading />
           </div>
         ) : (
-          <SearchRes movies={movies} token={token}></SearchRes>
+          <SearchRes movies={movies}></SearchRes>
         )}
       </div>
     </>

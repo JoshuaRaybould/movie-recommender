@@ -1,14 +1,13 @@
 import { Link } from "react-router-dom";
 
 type navInfo = {
-  userToken: string;
   searchFunc: Function;
 };
-const NavBar = ({ userToken, searchFunc }: navInfo) => {
+const NavBar = ({ searchFunc }: navInfo) => {
   return (
     <nav className="flex justify-between items-center bg-[#1b1e21] mb-4 h-16">
       <div>
-        <a className="text-4xl text-white ml-10" href={`/${userToken}`}>
+        <a className="text-4xl text-white ml-10" href={`/movies`}>
           MovRec
         </a>
       </div>
@@ -23,24 +22,24 @@ const NavBar = ({ userToken, searchFunc }: navInfo) => {
       </div>
       <div>
         <ul className="flex">
-          <li className="block mr-15">
-            <a className="text-white" href={`/${userToken}`}>
+          <li className="block mr-10">
+            <a className="text-white" href={`/movies`}>
               Home
             </a>
           </li>
-          {userToken ? (
-            <li className="block mr-15">
-              <a className="text-white" href={`/${userToken}/recommendations`}>
+          {/*userToken ? (
+            <li className="block mr-5">
+              <a className="text-white" href={`/recommendations`}>
                 Recommendations
               </a>
             </li>
           ) : (
-            <li className="block p-1">
+            <li className="block mr-5">
               <a className="text-white" href="/">
                 Recommendations
               </a>
             </li>
-          )}
+          )*/}
         </ul>
       </div>
     </nav>
