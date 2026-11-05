@@ -2,21 +2,21 @@ import "./App.css";
 import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Recommendations from "./pages/Recommendations";
-import SignIn from "./pages/SignIn";
+import LogIn from "./pages/LogIn";
 import SignUp from "./pages/SignUp";
+import { AuthProvider } from "./auth/authContext";
 
 function App() {
   return (
     <>
-      <Routes>
-        <Route path="/" element={<SignIn />} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/movies" element={<Home />} />
-        <Route
-          path="/:userToken/recommendations"
-          element={<Recommendations />}
-        />
-      </Routes>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<LogIn />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/movies" element={<Home />} />
+          <Route path="/recommendations" element={<Recommendations />} />
+        </Routes>
+      </AuthProvider>
     </>
   );
 }

@@ -9,6 +9,9 @@ import {
 import Navbar from "../components/Navbar";
 import Modal from "../components/Modal";
 import SearchRes from "../components/SearchRes";
+import { fullFetch } from "../api";
+import { MovieSchema } from "../types";
+import { useAuth } from "../auth/authContext";
 
 /*const query = useQuery({
    queryKey: ['all-movies'],
@@ -61,42 +64,41 @@ const Recommendations = () => {
   const debounced = useDebouncedCallback((value) => {
     setSearchTerm(value);
   }, 700);
-  const [token, setToken] = useState<string>("");
   const [movies, setMovies] = useState([]);
   const [modelTrained, setModelTrained] = useState<boolean>(false);
+  const { user } = useAuth();
 
   const navigate = useNavigate();
 
-  async function authed() {
-    var res = await axios.get("/api/signin/" + token).catch(function () {
-      navigate("/");
-    });
-    if (!res || (res && !res.data)) {
-      navigate("/");
-    }
-  }
-
+  /*
   async function trainModel() {
     setIsLoading(true);
-    await axios.post("/api/train/" + token);
-
+    // await axios.post("/api/train/" + token);
+    let movies;
+    try {
+      movies = fullFetch("/recommendation", options)
+    }
     setMovies((await axios.get(`/api/recommendation/${token}`)).data);
     setModelTrained(true);
     setIsLoading(false);
   }
-
-  let params = useParams();
-
-  if (params && params.userToken && token == "") {
-    setToken(params.userToken);
-  }
+*/
 
   async function getData() {
     setIsLoading(true);
-    if (searchTerm) {
-      setMovies((await axios.get(`/api/movies/${searchTerm}/${token}`)).data);
-    } else {
-      setMovies((await axios.get(`/api/recommendation/${token}`)).data);
+    try {
+      let movies;
+      if (searchTerm) {
+        movies = await fullFetch(
+          `/movies/${searchTerm}`,
+          {},
+          MovieSchema.array(),
+        );
+      } else {
+        movies = await fullFetch("/recommendation", {}, MovieSchema.array());
+      }
+    } catch (error) {
+      console.log(error); // todo!
     }
 
     setIsLoading(false);
@@ -107,7 +109,7 @@ const Recommendations = () => {
       getData();
     }
   }, [searchTerm]);
-
+  /*
   useEffect(() => {
     authed();
     if (!modelTrained) {
@@ -134,10 +136,10 @@ const Recommendations = () => {
       </>
     );
   }
-
+*/
   return (
     <>
-      <Navbar userToken={token} searchFunc={debounced} />
+      <Navbar searchFunc={debounced} />
 
       <div className="w-full flex h-full items-center justify-center">
         {isLoading ? (
@@ -161,7 +163,6 @@ const Recommendations = () => {
                   />
                   <div>
                     <Modal
-                      token={token}
                       movieId={item.movieId}
                       movieTitle={item.title}
                       prevRating={item.rating}

@@ -12,7 +12,7 @@ const SignUp = () => {
   async function attemptSignUp() {
     const options = {
       method: "POST",
-      headers: new Headers({ "Content-type": "application/json" }),
+      headers: { "Content-type": "application/json" },
       body: JSON.stringify({ username: username, password: password }),
     };
     let res;

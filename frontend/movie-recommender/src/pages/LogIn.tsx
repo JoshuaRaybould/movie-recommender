@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import { useAuth } from "../auth/authContext";
 import { fullFetch } from "../api";
 import { TokenSchema } from "../types";
 import type { Token } from "../types";
@@ -8,25 +9,15 @@ const SignIn = () => {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [failSignIn, setFailSignIn] = useState<boolean>(false);
-
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   async function attemptSignIn() {
-    const formData = new FormData();
-    formData.append("username", username);
-    formData.append("password", password);
-    const options = {
-      method: "POST",
-      //headers: new Headers({ "Content-type": "application/json" }),
-      body: formData,
-    };
-
-    let res = await fullFetch<Token>("/token", options, TokenSchema);
-    if (res && res.accessToken) {
-      localStorage.setItem("token", res.accessToken);
-      navigate(`/movies`);
-    } else {
-      setFailSignIn(true);
+    try {
+      login(username, password);
+      navigate("movies");
+    } catch (error) {
+      console.log(error); // todo, check what we want to do here
     }
   }
 

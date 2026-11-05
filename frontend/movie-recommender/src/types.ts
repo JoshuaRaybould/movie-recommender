@@ -25,6 +25,15 @@ export const RatingSchema = z.object({
 
 export type Rating = z.infer<typeof RatingSchema>;
 
+export const UserSchema = z.object({
+  userId: z.number(),
+  email: z.nullable(z.string()),
+  username: z.string(),
+  isDisabled: z.boolean(),
+});
+
+export type User = z.infer<typeof UserSchema>;
+
 /*
 export interface ratingInfo {
   token: string;

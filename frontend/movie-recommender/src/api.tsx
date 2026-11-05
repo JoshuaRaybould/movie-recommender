@@ -30,10 +30,13 @@ export async function apiFetch(
 ): Promise<unknown> {
   const url = `/api${path}`;
   const token = localStorage.getItem("token");
-
+  console.log(token && `Bearers ${token}`);
   const res = await fetch(url, {
     ...options,
-    ...(token && { Authorization: `Bearer ${token}` }),
+    headers: {
+      ...options.headers,
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
   });
   if (!res.ok) {
     const data = await res.json().catch(() => null);

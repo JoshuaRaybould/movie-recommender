@@ -22,7 +22,7 @@ const Modal = ({ movieId, movieTitle, prevRating }: ratingInfo) => {
   }
 
   async function applyRating() {
-    const options = { body: JSON.stringify({ method: "POST" }) };
+    const options = { method: "POST" };
     if (rating) {
       await fullFetch(`/rate/${movieId}/${rating}`, options, RatingSchema);
       setAccRating(rating);

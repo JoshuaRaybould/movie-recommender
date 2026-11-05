@@ -1,9 +1,12 @@
 import { Link } from "react-router-dom";
+import { useAuth } from "../auth/authContext";
 
 type navInfo = {
   searchFunc: Function;
 };
 const NavBar = ({ searchFunc }: navInfo) => {
+  const { user } = useAuth();
+
   return (
     <nav className="flex justify-between items-center bg-[#1b1e21] mb-4 h-16">
       <div>
@@ -27,7 +30,7 @@ const NavBar = ({ searchFunc }: navInfo) => {
               Home
             </a>
           </li>
-          {/*userToken ? (
+          {user ? (
             <li className="block mr-5">
               <a className="text-white" href={`/recommendations`}>
                 Recommendations
@@ -39,7 +42,7 @@ const NavBar = ({ searchFunc }: navInfo) => {
                 Recommendations
               </a>
             </li>
-          )*/}
+          )}
         </ul>
       </div>
     </nav>
