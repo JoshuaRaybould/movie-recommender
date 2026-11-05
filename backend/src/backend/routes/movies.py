@@ -1,11 +1,9 @@
 import logging
 
-from fastapi import APIRouter, HTTPException, status
-
 from backend.db import ConnectionDep
+from backend.exceptions import RatingAlreadyExistsError
 from backend.repository import (
     create_rating,
-    delete_rating,
     get_movie_by_id,
     get_movie_by_title,
     get_movies,
@@ -13,6 +11,7 @@ from backend.repository import (
 from backend.routes.auth import GetActiveUserDep
 from backend.schemas import Movie, Rating
 from backend.tmdb_api import retrieve_pic
+from fastapi import APIRouter, HTTPException, status
 
 # from backend.src.backend.model import createDataset, createModel, getRec
 
@@ -62,9 +61,12 @@ def rate(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Movie doesn't exist"
         )
-
-    delete_rating(con, user.user_id, movie_id)
-    rating_obj = create_rating(con, user.user_id, movie_id, rating)
+    try:
+        rating_obj = create_rating(con, user.user_id, movie_id, rating)
+    except RatingAlreadyExistsError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Movie already has a rating!"
+        )
     if not rating_obj:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

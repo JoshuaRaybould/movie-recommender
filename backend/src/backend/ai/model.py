@@ -2,11 +2,10 @@ import heapq
 from sqlite3 import Connection
 
 import pandas as pd
-from surprise import SVD, Dataset, Reader
-
 from backend.config import get_settings
 from backend.repository import get_ids_to_reviews_df, get_unreviewed_movies
 from backend.schemas import User
+from surprise import SVD, Dataset, Reader
 
 USER_OFFSET = 400000
 
@@ -16,12 +15,14 @@ MOVIE_DATA_PATH = get_settings().movie_data_path
 # Todo: we want ratings out of 10 since that is how we'll store it in db and may want to improve this model too!
 # First we need to get collect the data from both our MovieLens dataset and our SQL database which has our users and combine into a dataframe we can use
 def create_dataset(con: Connection) -> pd.DataFrame:
-    df1 = pd.read_csv(MOVIE_DATA_PATH + "movies.csv")
+    df1 = pd.read_csv(MOVIE_DATA_PATH + "ratings.csv")
 
     df2 = get_ids_to_reviews_df(con)
 
     # Importantly we need to ensure there is no overlap on the userIds in the dataset vs our database
+    df1["rating"] = df1["rating"] * 2
     df2["user_id"] = df2["user_id"] + USER_OFFSET
+
     combined_df = pd.concat([df1, df2])
 
     return combined_df
@@ -79,4 +80,3 @@ def get_rec(svd, con: Connection, user: User):
 
 if __name__ == "__main__":
     print("YES")
-    # svd = create_dataset()

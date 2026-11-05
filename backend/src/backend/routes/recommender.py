@@ -1,12 +1,11 @@
-from backend.ai_model import get_rec
-from fastapi import APIRouter, HTTPException, status
-
+from backend.ai.model import get_rec
 from backend.db import ConnectionDep
 from backend.main import get_model
 from backend.repository import get_movie_by_id
 from backend.routes.auth import GetActiveUserDep
 from backend.schemas import Movie
 from backend.tmdb_api import retrieve_pic
+from fastapi import APIRouter, HTTPException, status
 
 router = APIRouter()
 
@@ -20,7 +19,7 @@ def trainModel():
 """
 
 
-@router.get("/recommendation/{userToken}")
+@router.get("/recommendation")
 def getRecommendation(user: GetActiveUserDep, con: ConnectionDep) -> Movie | None:
     rec = get_rec(get_model(), con, user)
     rec_id = rec[1]

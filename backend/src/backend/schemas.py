@@ -50,7 +50,9 @@ class Rating(CamelModel):
     rating_id: int
     movie_id: int
     rating: int
-    # created_at todo
+
+
+# created_at todo
 
 
 class UserMovieRating(CamelModel):

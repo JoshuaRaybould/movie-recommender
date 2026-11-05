@@ -18,9 +18,10 @@ CREATE TABLE IF NOT EXISTS ratings (
     user_id INTEGER NOT NULL,
     movie_id INTEGER NOT NULL,
     rating INTEGER NOT NULL CHECK (rating > 0 AND rating <= 10),
-    created_at TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id),
-    FOREIGN KEY (movie_id) REFERENCES movies(movie_id)
+    FOREIGN KEY (movie_id) REFERENCES movies(movie_id),
+    UNIQUE (user_id, movie_id)
 ) STRICT;
 
 CREATE TABLE IF NOT EXISTS links (

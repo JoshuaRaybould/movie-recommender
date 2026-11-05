@@ -5,7 +5,7 @@ from typing import Annotated
 
 from fastapi import Depends, FastAPI
 
-from backend.ai_model import get_model_full
+from backend.ai.model import get_model_full
 from backend.config import get_settings
 from backend.db import initialise_db
 from backend.routes import auth, movies

@@ -2,7 +2,7 @@ from sqlite3 import Connection, IntegrityError
 
 import pandas as pd
 
-from backend.exceptions import UserAlreadyExistsErorr
+from backend.exceptions import RatingAlreadyExistsError, UserAlreadyExistsErorr
 from backend.schemas import (
     Movie,
     Rating,
@@ -90,23 +90,23 @@ def create_user(con: Connection, username: str, hashed_password: str) -> User:
         con.commit()
         return User.model_validate(dict(user))
     except IntegrityError:
-        raise UserAlreadyExistsErorr
+        raise UserAlreadyExistsErorr  # todo, consider other errors
 
 
 def get_movie_by_id(con: Connection, movie_id: int) -> Movie | None:
     cur = con.execute(
         """
-        SELECT movies.movie_id, title, genres, tmdb_id, rating FROM movies 
-        INNER JOIN links on movies.movie_id = links.movie_id 
+        SELECT movies.movie_id, title, genres, tmdb_id FROM movies 
+        LEFT JOIN links on movies.movie_id = links.movie_id 
         WHERE movies.movie_id = ? 
-        LIMIT 1"
+        LIMIT 1
         """,
         (movie_id,),
     )
     movie = cur.fetchone()
     if movie is None:
         return None
-    return Movie.model_validate(movie)
+    return Movie.model_validate(dict(movie))
 
 
 def delete_rating(con: Connection, user_id: int, movie_id: int):
@@ -120,15 +120,19 @@ def delete_rating(con: Connection, user_id: int, movie_id: int):
 def create_rating(
     con: Connection, user_id: int, movie_id: int, rating: int
 ) -> Rating | None:
-    cur = con.execute(
-        "INSERT INTO ratings (user_id, movie_id,  rating) VALUES(?, ?, ?) RETURNING rating_id, movie_id, rating",
-        (user_id, movie_id, rating),
-    )
-    rating_obj = cur.fetchone()
-    con.commit()
-    if rating_obj is None:
-        return None
-    return Rating.model_validate(rating_obj)
+    try:
+        cur = con.execute(
+            "INSERT INTO ratings (user_id, movie_id, rating) VALUES(?, ?, ?) RETURNING rating_id, movie_id, rating",
+            (user_id, movie_id, rating),
+        )
+        rating_obj = cur.fetchone()
+        con.commit()
+
+        if rating_obj is None:
+            return None
+        return Rating.model_validate(dict(rating_obj))
+    except IntegrityError:
+        raise RatingAlreadyExistsError
 
 
 def get_unreviewed_movies(con: Connection, user_id: int) -> list[Movie]:
