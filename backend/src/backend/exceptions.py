@@ -2,5 +2,5 @@ class UserAlreadyExistsErorr(Exception):
     pass
 
 
-class RatingAlreadyExistsError(Exception):
+class ReviewAlreadyExistsError(Exception):
     pass

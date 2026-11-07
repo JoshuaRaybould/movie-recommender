@@ -2,7 +2,7 @@ import { useState } from "react";
 import { FaRegStar, FaStar } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
 import { apiFetch, fullFetch } from "../api";
-import { RatingSchema } from "../types";
+import { ReviewSchema } from "../types";
 
 type ratingInfo = {
   // todo decide what to do with this type
@@ -24,7 +24,7 @@ const Modal = ({ movieId, movieTitle, prevRating }: ratingInfo) => {
   async function applyRating() {
     const options = { method: "POST" };
     if (rating) {
-      await fullFetch(`/rate/${movieId}/${rating}`, options, RatingSchema);
+      await fullFetch(`/rate/${movieId}/${rating}`, options, ReviewSchema);
       setAccRating(rating);
       setActive(false);
     } else {

@@ -1,11 +1,15 @@
-from sqlite3 import Connection, IntegrityError
+from sqlite3 import Connection, IntegrityError, Row
 
 import pandas as pd
 
-from backend.exceptions import RatingAlreadyExistsError, UserAlreadyExistsErorr
+from backend.exceptions import (
+    ReviewAlreadyExistsError,
+    UserAlreadyExistsErorr,
+)
 from backend.schemas import (
     Movie,
-    Rating,
+    MovieAndReview,
+    Review,
     User,
     UserInDB,
 )
@@ -22,15 +26,25 @@ def get_user_id(con: Connection, token: str) -> int | None:
     return user_id["user_id"]
 
 
-def get_movie_by_title(con: Connection, title: str, user_id: int) -> list[Movie]:
+def to_movie_and_review(row: Row) -> MovieAndReview:
+    data = dict(row)
+
+    review = Review.model_validate(data) if data["review_id"] is not None else None
+
+    return MovieAndReview.model_validate({**data, "review": review})
+
+
+def get_movie_by_title(
+    con: Connection, title: str, user_id: int
+) -> list[MovieAndReview]:
     cur = con.cursor()
 
     cur.execute(
         """
-        SELECT movies.movie_id, title, genres, tmdb_id, rating FROM movies 
+        SELECT movies.movie_id, title, genres, tmdb_id, rating, review_id, reviews.user_id FROM movies 
         INNER JOIN links on movies.movie_id = links.movie_id 
-        LEFT OUTER JOIN ratings on movies.movie_id = ratings.movie_id 
-        AND ratings.user_id = ? 
+        LEFT OUTER JOIN reviews on movies.movie_id = reviews.movie_id 
+        AND reviews.user_id = ? 
         WHERE title LIKE ?
         LIMIT ?
         """,
@@ -40,18 +54,19 @@ def get_movie_by_title(con: Connection, title: str, user_id: int) -> list[Movie]
             MOVIES_PER_PAGE,
         ),
     )
-    movies = cur.fetchall()
-    movie_dicts = map(dict, movies)
-    return list(map(Movie.model_validate, movie_dicts))
+    res = cur.fetchall()
+
+    return [to_movie_and_review(row) for row in res]
 
 
-def get_movies(con: Connection, user_id: int) -> list[Movie]:
+def get_movies(con: Connection, user_id: int) -> list[MovieAndReview]:
+
     cur = con.execute(
         """
-        SELECT movies.movie_id, title, genres, tmdb_id, rating FROM movies 
+        SELECT movies.movie_id, title, genres, tmdb_id, rating, review_id, reviews.user_id FROM movies 
         INNER JOIN links on movies.movie_id = links.movie_id 
-        LEFT OUTER JOIN ratings on movies.movie_id = ratings.movie_id 
-        AND ratings.user_id = ? 
+        LEFT OUTER JOIN reviews on movies.movie_id = reviews.movie_id 
+        AND reviews.user_id = ? 
         LIMIT ?
         """,
         (
@@ -59,10 +74,9 @@ def get_movies(con: Connection, user_id: int) -> list[Movie]:
             MOVIES_PER_PAGE,
         ),
     )
-    movies = cur.fetchall()
-    movie_dicts = map(dict, movies)
+    res = cur.fetchall()
 
-    return list(map(Movie.model_validate, movie_dicts))
+    return [to_movie_and_review(row) for row in res]
 
 
 def get_user_by_username(con: Connection, username: str) -> UserInDB | None:
@@ -109,51 +123,52 @@ def get_movie_by_id(con: Connection, movie_id: int) -> Movie | None:
     return Movie.model_validate(dict(movie))
 
 
-def delete_rating(con: Connection, user_id: int, movie_id: int):
+def delete_review(con: Connection, user_id: int, movie_id: int):
     cur = con.cursor()
     cur.execute(
-        "DELETE FROM ratings WHERE user_id = ? AND movie_id = ?",
+        "DELETE FROM reviews WHERE user_id = ? AND movie_id = ?",
         (user_id, movie_id),
     )
 
 
-def create_rating(
+def create_review(
     con: Connection, user_id: int, movie_id: int, rating: int
-) -> Rating | None:
+) -> Review | None:
     try:
         cur = con.execute(
-            "INSERT INTO ratings (user_id, movie_id, rating) VALUES(?, ?, ?) RETURNING rating_id, movie_id, rating",
+            "INSERT INTO reviews (user_id, movie_id, rating) VALUES(?, ?, ?) RETURNING user_id, review_id, movie_id, rating",
             (user_id, movie_id, rating),
         )
-        rating_obj = cur.fetchone()
+        review_obj = cur.fetchone()
         con.commit()
 
-        if rating_obj is None:
+        if review_obj is None:
             return None
-        return Rating.model_validate(dict(rating_obj))
+        print(dict(review_obj))
+        return Review.model_validate(dict(review_obj))
     except IntegrityError:
-        raise RatingAlreadyExistsError
+        raise ReviewAlreadyExistsError
 
 
 def get_unreviewed_movies(con: Connection, user_id: int) -> list[Movie]:
     cur = con.execute(
         """
-        SELECT movies.movie_id, title, genres, tmdb_id, rating FROM movies
-        LEFT OUTER JOIN ratings on movies.movie_id = ratings.movie_id 
-        AND ratings.user_id = ? 
-        WHERE ratings.rating IS NULL
+        SELECT movies.movie_id, title, genres, tmdb_id FROM movies 
+        INNER JOIN links on movies.movie_id = links.movie_id 
+        LEFT OUTER JOIN reviews on movies.movie_id = reviews.movie_id 
+        AND reviews.user_id = ? 
+        WHERE reviews.rating IS NULL
         """,
         (user_id,),
     )
     unreviwed = cur.fetchall()
     movie_dicts = map(dict, unreviwed)
-
     return list(map(Movie.model_validate, movie_dicts))
 
 
 def get_ids_to_reviews_df(con: Connection) -> pd.DataFrame:
     df2 = pd.read_sql_query(
-        "SELECT users.user_id, movie_id, rating from ratings INNER JOIN users ON ratings.user_id = users.user_id",
+        "SELECT users.user_id, movie_id, rating from reviews INNER JOIN users ON reviews.user_id = users.user_id",
         con,
     )
     return df2

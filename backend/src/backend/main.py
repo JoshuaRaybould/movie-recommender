@@ -8,7 +8,7 @@ from fastapi import Depends, FastAPI
 from backend.ai.model import get_model_full
 from backend.config import get_settings
 from backend.db import initialise_db
-from backend.routes import auth, movies
+from backend.routes import auth, movies, recommender
 
 DB_PATH = get_settings().database_path
 
@@ -24,7 +24,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 app.include_router(auth.router)
 app.include_router(movies.router)
-# app.include_router(recommender.router)
+app.include_router(recommender.router)
 
 
 def get_model():

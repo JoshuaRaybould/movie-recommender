@@ -3,25 +3,17 @@ import { useNavigate } from "react-router-dom";
 import { fullFetch } from "../api";
 import { TokenSchema } from "../types";
 import type { Token } from "../types";
+import { useAuth } from "../auth/authContext";
 const SignUp = () => {
   const [password, setPassword] = useState<string>("");
   const [username, setUsername] = useState<string>("");
-
+  const { signup } = useAuth();
   const navigate = useNavigate();
 
   async function attemptSignUp() {
-    const options = {
-      method: "POST",
-      headers: { "Content-type": "application/json" },
-      body: JSON.stringify({ username: username, password: password }),
-    };
-    let res;
     try {
-      res = await fullFetch<Token>("/signup", options, TokenSchema);
-      if (res && res.accessToken) {
-        localStorage.setItem("token", res.accessToken);
-        navigate(`/movies`);
-      }
+      await signup(username, password);
+      navigate(`/movies`);
     } catch (error) {
       console.log(error); // todo
     }

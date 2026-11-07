@@ -38,6 +38,16 @@ export async function apiFetch(
       ...(token && { Authorization: `Bearer ${token}` }),
     },
   });
+
+  if (res.status === 401) {
+    if (path !== "/token" && path !== "/users/me") {
+      const data = await res.json().catch(() => null);
+      localStorage.removeItem("token");
+      window.location.href = "/";
+      throw new ApiError(res.status, data);
+    }
+  }
+
   if (!res.ok) {
     const data = await res.json().catch(() => null);
     throw new ApiError(res.status, data);

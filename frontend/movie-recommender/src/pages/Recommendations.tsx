@@ -9,9 +9,16 @@ import {
 import Navbar from "../components/Navbar";
 import Modal from "../components/Modal";
 import SearchRes from "../components/SearchRes";
-import { fullFetch } from "../api";
-import { MovieSchema } from "../types";
+import { apiFetch, fullFetch } from "../api";
+import {
+  MovieAndReviewSchema,
+  MovieSchema,
+  RecommendedMovieSchema,
+  type MovieAndReview,
+  type RecommendedMovie,
+} from "../types";
 import { useAuth } from "../auth/authContext";
+import * as z from "zod";
 
 /*const query = useQuery({
    queryKey: ['all-movies'],
@@ -39,50 +46,41 @@ function Loading() {
   );
 }
 
-type Movie = {
-  movieId: number;
-  title: string;
-  genres: string;
-  tmdbId: number;
-  picUrl: string;
-  rating: number | null;
-};
-
-type Recommended = {
-  movieId: number;
-  title: string;
-  genres: string;
-  tmdbId: number;
-  picUrl: string;
-  rating: number | null;
-  expected: number;
-};
-
 const Recommendations = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const debounced = useDebouncedCallback((value) => {
     setSearchTerm(value);
   }, 700);
-  const [movies, setMovies] = useState([]);
+  const [reccomendedMovies, setRecommendedMovie] = useState<RecommendedMovie[]>(
+    [],
+  );
+  const [searchedMovies, setSearchedMovies] = useState<MovieAndReview[]>([]);
   const [modelTrained, setModelTrained] = useState<boolean>(false);
   const { user } = useAuth();
 
   const navigate = useNavigate();
 
-  /*
   async function trainModel() {
     setIsLoading(true);
-    // await axios.post("/api/train/" + token);
+    /*const options = { method: "POST" };
+    await apiFetch("/train", options);
+    */
+
     let movies;
     try {
-      movies = fullFetch("/recommendation", options)
+      movies = await fullFetch(
+        "/recommendation",
+        {},
+        RecommendedMovieSchema.array(),
+      );
+      setRecommendedMovie(movies);
+    } catch (error) {
+      console.log(error); // todo
     }
-    setMovies((await axios.get(`/api/recommendation/${token}`)).data);
     setModelTrained(true);
     setIsLoading(false);
   }
-*/
 
   async function getData() {
     setIsLoading(true);
@@ -90,15 +88,21 @@ const Recommendations = () => {
       let movies;
       if (searchTerm) {
         movies = await fullFetch(
-          `/movies/${searchTerm}`,
+          "/movies/" + searchTerm,
           {},
-          MovieSchema.array(),
+          MovieAndReviewSchema.array(),
         );
+        setSearchedMovies(movies);
       } else {
-        movies = await fullFetch("/recommendation", {}, MovieSchema.array());
+        movies = await fullFetch(
+          "/recommendation",
+          {},
+          RecommendedMovieSchema.array(),
+        );
+        setRecommendedMovie(movies);
       }
     } catch (error) {
-      console.log(error); // todo!
+      console.log(error); // todo
     }
 
     setIsLoading(false);
@@ -109,20 +113,23 @@ const Recommendations = () => {
       getData();
     }
   }, [searchTerm]);
-  /*
+
   useEffect(() => {
-    authed();
-    if (!modelTrained) {
-      trainModel();
+    if (user) {
+      if (!modelTrained) {
+        trainModel();
+      } else {
+        getData();
+      }
     } else {
-      getData();
+      navigate("/");
     }
-  }, [token]);
+  }, []);
 
   if (searchTerm) {
     return (
       <>
-        <Navbar userToken={token} searchFunc={debounced} />
+        <Navbar searchFunc={debounced} />
 
         <div className="w-full flex h-full items-center justify-center">
           {isLoading ? (
@@ -130,13 +137,13 @@ const Recommendations = () => {
               <Loading />
             </div>
           ) : (
-            <SearchRes movies={movies} token={token}></SearchRes>
+            <SearchRes movies={searchedMovies}></SearchRes>
           )}
         </div>
       </>
     );
   }
-*/
+
   return (
     <>
       <Navbar searchFunc={debounced} />
@@ -148,24 +155,24 @@ const Recommendations = () => {
           </div>
         ) : (
           <div className="flex items-center justify-center">
-            {movies.map((item: Recommended) => (
+            {reccomendedMovies.map((movie: RecommendedMovie) => (
               <div className="flex-col flex">
                 <div
                   className="rounded-sm bottom-0 bg-gray-300 overflow-hidden outline-2 outline-gray-300"
-                  key={item.movieId}
+                  key={movie.movieId}
                 >
                   <h2 className="block w-90 text-xl overflow-hidden text-ellipsis text-wrap break-normal mt-2 mb-2 ml-1">
-                    {item.title}
+                    {movie.title}
                   </h2>
                   <img
                     className="rounded-sm"
-                    src={`https://image.tmdb.org/t/p/w400${item.picUrl}`}
+                    src={`https://image.tmdb.org/t/p/w400${movie.picUrl}`}
                   />
                   <div>
                     <Modal
-                      movieId={item.movieId}
-                      movieTitle={item.title}
-                      prevRating={item.rating}
+                      movieId={movie.movieId}
+                      movieTitle={movie.title}
+                      prevRating={null}
                     ></Modal>
                   </div>
                 </div>
@@ -173,7 +180,7 @@ const Recommendations = () => {
                   <details className="flex items-center justify-center mt-1 mb-1">
                     <summary className="text-xl">Expected Rating</summary>
                     <p className="flex justify-center text-4xl font-semibold">
-                      {(item.expected * 2).toFixed(2)}
+                      {movie.expectedScore.toFixed(2)}
                     </p>
                   </details>
                 </div>

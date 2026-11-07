@@ -8,29 +8,17 @@ import {
 } from "@tanstack/react-query";
 import Navbar from "./Navbar";
 import Modal from "./Modal";
+import type { MovieAndReview } from "../types";
 
 /*const query = useQuery({
    queryKey: ['all-movies'],
    queryFn: 
 })*/
 
-type Movie = {
-  movieId: number;
-  title: string;
-  genres: string;
-  tmdbId: number;
-  picUrl: string;
-  rating: number | null;
-};
-
-type results = {
-  movies: Array<Movie>;
-};
-
-const SearchRes = ({ movies }: results) => {
+const SearchRes = ({ movies }: { movies: MovieAndReview[] }) => {
   return (
     <div className="grid grid-cols-4 grid-rows-2 justify-center content-normal gap-3 h-200 w-200">
-      {movies.map((item: Movie) => (
+      {movies.map((item: MovieAndReview) => (
         <div
           className="rounded-sm bottom-0 bg-gray-300 overflow-hidden"
           key={item.movieId}
@@ -43,7 +31,7 @@ const SearchRes = ({ movies }: results) => {
             <Modal
               movieId={item.movieId}
               movieTitle={item.title}
-              prevRating={item.rating}
+              prevRating={item.review && item.review.rating}
             ></Modal>
           </div>
           <span className="block w-46 overflow-hidden text-ellipsis text-wrap break-normal ml-1">

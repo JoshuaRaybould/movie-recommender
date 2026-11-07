@@ -11,19 +11,6 @@ class CamelModel(BaseModel):
     )
 
 
-class Movie(CamelModel):
-    movie_id: int
-    title: str
-    genres: str
-    tmdb_id: int | None = None
-    pic_url: str | None = None
-
-
-class MovieAndReview(Movie):
-    user_id: int
-    review_score: int
-
-
 class User(CamelModel):
     user_id: int
     email: str | None = None
@@ -46,16 +33,27 @@ class Token(CamelModel):
     token_type: str
 
 
-class Rating(CamelModel):
-    rating_id: int
+class Movie(CamelModel):
     movie_id: int
-    rating: int
+    title: str
+    genres: str
+    tmdb_id: int | None = None
+    pic_url: str | None = None
 
 
-# created_at todo
-
-
-class UserMovieRating(CamelModel):
+class Review(CamelModel):
+    review_id: int
     user_id: int
     movie_id: int
     rating: int
+
+
+class MovieAndReview(Movie):
+    review: Review | None = None
+
+
+class RecommendedMovie(Movie):
+    expected_score: float
+
+
+# created_at todo

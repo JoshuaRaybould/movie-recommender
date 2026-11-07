@@ -13,8 +13,8 @@ CREATE TABLE IF NOT EXISTS movies (
     genres TEXT
 ) STRICT;
 
-CREATE TABLE IF NOT EXISTS ratings (
-    rating_id INTEGER PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS reviews (
+    review_id INTEGER PRIMARY KEY,
     user_id INTEGER NOT NULL,
     movie_id INTEGER NOT NULL,
     rating INTEGER NOT NULL CHECK (rating > 0 AND rating <= 10),

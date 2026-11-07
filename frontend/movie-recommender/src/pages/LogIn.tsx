@@ -14,8 +14,8 @@ const SignIn = () => {
 
   async function attemptSignIn() {
     try {
-      login(username, password);
-      navigate("movies");
+      await login(username, password);
+      navigate("/movies");
     } catch (error) {
       console.log(error); // todo, check what we want to do here
     }
@@ -25,7 +25,7 @@ const SignIn = () => {
     <div className="flex-col flex w-full h-screen items-center">
       <h1 className="flex text-4xl mt-10">Movie Recommender</h1>
       <h3 className="flex text-2xl mt-5">AI powered movie recommendations</h3>
-      <h4 className="flex text-2xl mt-20">Sign in</h4>
+      <h4 className="flex text-2xl mt-20">Log in</h4>
 
       <input
         name="myInput"

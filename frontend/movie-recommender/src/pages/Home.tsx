@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
 import {
   QueryClient,
@@ -7,11 +6,11 @@ import {
   useQuery,
 } from "@tanstack/react-query";
 import Navbar from "../components/Navbar";
-import Modal from "../components/Modal";
+
 import SearchRes from "../components/SearchRes";
 import { fullFetch } from "../api";
-import { MovieSchema } from "../types";
-import type { Movie } from "../types";
+import { MovieAndReviewSchema } from "../types";
+import type { MovieAndReview } from "../types";
 import { Spinner } from "../components/Spinner";
 /*const query = useQuery({
    queryKey: ['all-movies'],
@@ -24,7 +23,7 @@ const Home = () => {
   const debounced = useDebouncedCallback((value) => {
     setSearchTerm(value);
   }, 700);
-  const [movies, setMovies] = useState<Movie[]>([]);
+  const [movies, setMovies] = useState<MovieAndReview[]>([]);
 
   async function getData() {
     setIsLoading(true);
@@ -32,12 +31,12 @@ const Home = () => {
       let movies;
       if (searchTerm) {
         movies = await fullFetch(
-          `/movies/{searchTerm}`,
+          `/movies/` + searchTerm,
           {},
-          MovieSchema.array(),
+          MovieAndReviewSchema.array(),
         );
       } else {
-        movies = await fullFetch("/movies", {}, MovieSchema.array());
+        movies = await fullFetch("/movies", {}, MovieAndReviewSchema.array());
       }
       setMovies(movies);
     } catch (error) {

@@ -1,33 +1,35 @@
-from backend.ai.model import get_rec
+import backend.main as m
+from backend.ai.model import get_model_full, get_rec
 from backend.db import ConnectionDep
-from backend.main import get_model
 from backend.repository import get_movie_by_id
 from backend.routes.auth import GetActiveUserDep
-from backend.schemas import Movie
+from backend.schemas import RecommendedMovie
 from backend.tmdb_api import retrieve_pic
 from fastapi import APIRouter, HTTPException, status
 
 router = APIRouter()
 
-"""
-@router.post("/train/{userToken}")
-def trainModel():
-    df = createDataset()
-    global currentModel
-    currentModel = createModel(df)
-    return True
-"""
+
+@router.post("/train", status_code=204)
+def trainModel(con: ConnectionDep):
+    m.app.state.model = get_model_full(con)
 
 
 @router.get("/recommendation")
-def getRecommendation(user: GetActiveUserDep, con: ConnectionDep) -> Movie | None:
-    rec = get_rec(get_model(), con, user)
-    rec_id = rec[1]
+def getRecommendation(
+    user: GetActiveUserDep, con: ConnectionDep
+) -> list[RecommendedMovie]:
+    rec = get_rec(m.get_model(), con, user)
+    if rec is None:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)  # todo
 
-    movie = get_movie_by_id(con, rec_id)
+    movie = get_movie_by_id(con, rec["movie_id"])
     if movie is None:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     if movie.tmdb_id is not None:
         movie.pic_url = retrieve_pic(movie.tmdb_id)
+    rec_movie = RecommendedMovie.model_validate(
+        {"expected_score": rec["expected_score"], **(movie.model_dump())}
+    )
 
-    return movie
+    return [rec_movie]

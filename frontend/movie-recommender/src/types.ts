@@ -17,13 +17,26 @@ export const MovieSchema = z.object({
 
 export type Movie = z.infer<typeof MovieSchema>;
 
-export const RatingSchema = z.object({
-  ratingId: z.number(),
+export const ReviewSchema = z.object({
+  reviewId: z.number(),
+  userId: z.number(),
   movieId: z.number(),
   rating: z.number(),
 });
 
-export type Rating = z.infer<typeof RatingSchema>;
+export type Review = z.infer<typeof ReviewSchema>;
+
+export const MovieAndReviewSchema = MovieSchema.extend({
+  review: ReviewSchema.nullable(),
+});
+
+export type MovieAndReview = z.infer<typeof MovieAndReviewSchema>;
+
+export const RecommendedMovieSchema = MovieSchema.extend({
+  expectedScore: z.number(),
+});
+
+export type RecommendedMovie = z.infer<typeof RecommendedMovieSchema>;
 
 export const UserSchema = z.object({
   userId: z.number(),

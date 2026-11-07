@@ -4,6 +4,7 @@ import { useAuth } from "../auth/authContext";
 type navInfo = {
   searchFunc: Function;
 };
+
 const NavBar = ({ searchFunc }: navInfo) => {
   const { user } = useAuth();
 
