@@ -1,22 +1,19 @@
-import axios from "axios";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { useAuth } from "../auth/authContext";
 const SignUp = () => {
-  const [token, setToken] = useState<string>("");
-  const [isDuplicate, setIsDuplicate] = useState<boolean>(false);
-
+  const [password, setPassword] = useState<string>("");
+  const [username, setUsername] = useState<string>("");
+  const { signup } = useAuth();
   const navigate = useNavigate();
 
   async function attemptSignUp() {
-    if (token.length) {
-      var res = await axios.post("/api/signup/" + token).catch(function () {
-        setIsDuplicate(true);
-        return;
-      });
-      if (res && res.data) {
-        navigate(`/${token}`);
-      }
+    try {
+      await signup(username, password);
+      navigate(`/movies`);
+    } catch (error) {
+      console.log(error); // todo
     }
   }
 
@@ -29,14 +26,19 @@ const SignUp = () => {
       <input
         name="myInput"
         className="flex rounded-xs pl-2 outline-1 h-9 mt-5"
-        placeholder="Enter name"
+        placeholder="Username"
         onChange={(e) => {
-          setToken(e.target.value);
+          setUsername(e.target.value);
         }}
       />
-
-      <p className="flex text-sm mt-1">This will be used to sign in</p>
-      <p className="flex text-sm">So don't forget it!</p>
+      <input
+        name="myInput"
+        className="flex rounded-xs pl-2 outline-1 h-9 mt-5"
+        placeholder="Password"
+        onChange={(e) => {
+          setPassword(e.target.value);
+        }}
+      />
       <div className="flex">
         <button
           onClick={attemptSignUp}
@@ -45,13 +47,6 @@ const SignUp = () => {
           Next
         </button>
       </div>
-
-      {isDuplicate && (
-        <p className="flex text-red-500 mt-1">Account already exists</p>
-      )}
-      <a className="flex text-blue-500 mt-1" href="/">
-        Have an account? Sign in here
-      </a>
     </div>
   );
 };

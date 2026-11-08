@@ -1,26 +1,20 @@
-import axios from "axios";
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import Navbar from "../components/Navbar";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+import { useAuth } from "../auth/authContext";
 
 const SignIn = () => {
-  const [token, setToken] = useState<string>("");
-  const [failSignIn, setFailSignIn] = useState<boolean>(false);
-
+  const [username, setUsername] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   async function attemptSignIn() {
-    if (token.length) {
-      var res = await axios.get("/api/signin/" + token).catch(function () {
-        setFailSignIn(true);
-        return;
-      });
-      if (res && res.data) {
-        console.log(res.data);
-        navigate(`/${token}`);
-      } else {
-        setFailSignIn(true);
-      }
+    try {
+      await login(username, password);
+      navigate("/movies");
+    } catch (error) {
+      console.log(error); // todo, check what we want to do here
     }
   }
 
@@ -28,17 +22,24 @@ const SignIn = () => {
     <div className="flex-col flex w-full h-screen items-center">
       <h1 className="flex text-4xl mt-10">Movie Recommender</h1>
       <h3 className="flex text-2xl mt-5">AI powered movie recommendations</h3>
-      <h4 className="flex text-2xl mt-20">Sign in</h4>
+      <h4 className="flex text-2xl mt-20">Log in</h4>
 
       <input
         name="myInput"
         className="flex rounded-xs pl-2 outline-1 h-9 mt-3"
-        placeholder="Enter name"
+        placeholder="Username"
         onChange={(e) => {
-          setToken(e.target.value);
+          setUsername(e.target.value);
         }}
       />
-
+      <input
+        name="myInput"
+        className="flex rounded-xs pl-2 outline-1 h-9 mt-3"
+        placeholder="Password"
+        onChange={(e) => {
+          setPassword(e.target.value);
+        }}
+      />
       <div className="flex">
         <button
           onClick={attemptSignIn}
@@ -48,9 +49,6 @@ const SignIn = () => {
         </button>
       </div>
 
-      {failSignIn && (
-        <p className="flex text-red-500 mt-2">No account with that name</p>
-      )}
       <a className="flex text-blue-500 mt-2" href="/signup">
         Don't have an account? Sign up here
       </a>

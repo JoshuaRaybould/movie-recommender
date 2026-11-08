@@ -1,19 +1,17 @@
-import axios from "axios";
 import { useState } from "react";
 import { FaRegStar, FaStar } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
+import { apiFetch, fullFetch } from "../api";
+import { ReviewSchema } from "../types";
 
 type ratingInfo = {
-  token: string;
+  // todo decide what to do with this type
   movieId: number;
   movieTitle: string;
   prevRating: number | null;
 };
 
-const Modal = ({ token, movieId, movieTitle, prevRating }: ratingInfo) => {
-  if (prevRating) {
-    prevRating = prevRating * 2;
-  }
+const Modal = ({ movieId, movieTitle, prevRating }: ratingInfo) => {
   const [active, setActive] = useState<boolean>(false);
   const [rating, setRating] = useState<number | null>(prevRating);
   const [accRating, setAccRating] = useState<number | null>(prevRating);
@@ -24,9 +22,16 @@ const Modal = ({ token, movieId, movieTitle, prevRating }: ratingInfo) => {
   }
 
   async function applyRating() {
+    let options;
+    if (accRating) {
+      options = { method: "PUT" };
+    } else {
+      options = { method: "POST" };
+    }
+
     if (rating) {
+      await fullFetch(`/rate/${movieId}/${rating}`, options, ReviewSchema);
       setAccRating(rating);
-      await axios.post(`/api/rate/${token}/${movieId}/${rating / 2}`);
       setActive(false);
     } else {
       alert("try again");
@@ -34,9 +39,15 @@ const Modal = ({ token, movieId, movieTitle, prevRating }: ratingInfo) => {
   }
 
   async function resetRating() {
-    setRating(null);
-    await axios.post(`/api/delete/rate/${token}/${movieId}/None`);
-    setActive(false);
+    const options = { method: "DELETE" };
+    try {
+      await apiFetch(`/rate/${movieId}`, options);
+      setAccRating(null);
+      setRating(null);
+      setActive(false);
+    } catch (error) {
+      console.log(error); // todo
+    }
   }
 
   return (
@@ -78,9 +89,9 @@ const Modal = ({ token, movieId, movieTitle, prevRating }: ratingInfo) => {
               <h3 className="text-xl mt-1">{movieTitle}</h3>
 
               <div className="flex flex-wrap justify-center">
-                {[...Array(10)].map((star, i) => (
+                {[...Array(10)].map((_, i) => (
                   <>
-                    <label className="mt-2">
+                    <label key={i} className="mt-2">
                       <input
                         className="cursor-pointer hidden"
                         type="radio"
