@@ -1,5 +1,7 @@
 import logging
 
+from fastapi import APIRouter, HTTPException, Response, status
+
 from backend.db import ConnectionDep
 from backend.exceptions import ReviewAlreadyExistsError, ReviewNotFoundError
 from backend.repository import (
@@ -13,7 +15,6 @@ from backend.repository import (
 from backend.routes.auth import GetActiveUserDep
 from backend.schemas import Movie, MovieAndReview, Review
 from backend.tmdb_api import retrieve_pic
-from fastapi import APIRouter, HTTPException, Response, status
 
 # from backend.src.backend.model import createDataset, createModel, getRec
 

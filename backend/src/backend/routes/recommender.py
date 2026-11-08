@@ -1,3 +1,5 @@
+from fastapi import APIRouter, HTTPException, status
+
 import backend.main as m
 from backend.ai.model import get_model_full, get_rec
 from backend.db import ConnectionDep
@@ -5,7 +7,6 @@ from backend.repository import get_movie_by_id
 from backend.routes.auth import GetActiveUserDep
 from backend.schemas import RecommendedMovie
 from backend.tmdb_api import retrieve_pic
-from fastapi import APIRouter, HTTPException, status
 
 router = APIRouter()
 

@@ -89,29 +89,31 @@ const Modal = ({ movieId, movieTitle, prevRating }: ratingInfo) => {
               <h3 className="text-xl mt-1">{movieTitle}</h3>
 
               <div className="flex flex-wrap justify-center">
-                {[...Array(10)].map((i) => (
-                  <label key={i} className="mt-2">
-                    <input
-                      className="cursor-pointer hidden"
-                      type="radio"
-                      name="editList"
-                      value="always"
-                      onClick={() => setRating(i + 1)}
-                    />
-                    {!rating || i >= rating ? (
-                      <FaRegStar
-                        className="cursor-pointer opacity-85"
-                        color="gold"
-                        size={35}
-                      ></FaRegStar>
-                    ) : (
-                      <FaStar
-                        className="cursor-pointer opacity-85"
-                        color="gold"
-                        size={35}
-                      ></FaStar>
-                    )}
-                  </label>
+                {[...Array(10)].map((_, i) => (
+                  <>
+                    <label key={i} className="mt-2">
+                      <input
+                        className="cursor-pointer hidden"
+                        type="radio"
+                        name="editList"
+                        value="always"
+                        onClick={() => setRating(i + 1)}
+                      />
+                      {!rating || i >= rating ? (
+                        <FaRegStar
+                          className="cursor-pointer opacity-85"
+                          color="gold"
+                          size={35}
+                        ></FaRegStar>
+                      ) : (
+                        <FaStar
+                          className="cursor-pointer opacity-85"
+                          color="gold"
+                          size={35}
+                        ></FaStar>
+                      )}
+                    </label>
+                  </>
                 ))}
               </div>
 

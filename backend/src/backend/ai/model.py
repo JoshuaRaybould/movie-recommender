@@ -2,11 +2,12 @@ import heapq
 from sqlite3 import Connection
 
 import pandas as pd
+from surprise import SVD, Dataset, Reader
+
 from backend.config import get_settings
 from backend.db import get_connection
 from backend.repository import get_ids_to_reviews_df, get_unreviewed_movies
 from backend.schemas import User
-from surprise import SVD, Dataset, Reader
 
 USER_OFFSET = 400000
 

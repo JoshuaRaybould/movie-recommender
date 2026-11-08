@@ -3,15 +3,16 @@ from sqlite3 import Connection
 from typing import Annotated
 
 import jwt
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from jwt.exceptions import InvalidTokenError
+from pwdlib import PasswordHash
+
 from backend.config import SettingDep
 from backend.db import ConnectionDep
 from backend.exceptions import UserAlreadyExistsErorr
 from backend.repository import create_user, get_user_by_username
 from backend.schemas import Token, User, UserCreate, UserInDB
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from jwt.exceptions import InvalidTokenError
-from pwdlib import PasswordHash
 
 router = APIRouter()
 

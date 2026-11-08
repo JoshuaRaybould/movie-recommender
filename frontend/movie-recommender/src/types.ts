@@ -12,7 +12,7 @@ export const MovieSchema = z.object({
   title: z.string(),
   genres: z.string(),
   tmdbId: z.number(),
-  picUrl: z.string(),
+  picUrl: z.nullable(z.string()),
 });
 
 export type Movie = z.infer<typeof MovieSchema>;

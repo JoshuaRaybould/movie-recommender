@@ -1,24 +1,18 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useDebouncedCallback } from "use-debounce";
-import {
-  QueryClient,
-  QueryClientProvider,
-  useQuery,
-} from "@tanstack/react-query";
+
 import Navbar from "../components/Navbar";
 import Modal from "../components/Modal";
 import SearchRes from "../components/SearchRes";
-import { apiFetch, fullFetch } from "../api";
+import { fullFetch } from "../api";
 import {
   MovieAndReviewSchema,
-  MovieSchema,
   RecommendedMovieSchema,
   type MovieAndReview,
   type RecommendedMovie,
 } from "../types";
 import { useAuth } from "../auth/authContext";
-import * as z from "zod";
 
 /*const query = useQuery({
    queryKey: ['all-movies'],

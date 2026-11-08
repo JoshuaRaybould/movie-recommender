@@ -1,12 +1,3 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { useDebouncedCallback } from "use-debounce";
-import {
-  QueryClient,
-  QueryClientProvider,
-  useQuery,
-} from "@tanstack/react-query";
-import Navbar from "./Navbar";
 import Modal from "./Modal";
 import type { MovieAndReview } from "../types";
 

@@ -1,8 +1,6 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { fullFetch } from "../api";
-import { TokenSchema } from "../types";
-import type { Token } from "../types";
+
 import { useAuth } from "../auth/authContext";
 const SignUp = () => {
   const [password, setPassword] = useState<string>("");

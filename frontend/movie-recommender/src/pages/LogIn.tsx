@@ -1,14 +1,11 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import Navbar from "../components/Navbar";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 import { useAuth } from "../auth/authContext";
-import { fullFetch } from "../api";
-import { TokenSchema } from "../types";
-import type { Token } from "../types";
+
 const SignIn = () => {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [failSignIn, setFailSignIn] = useState<boolean>(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -52,9 +49,6 @@ const SignIn = () => {
         </button>
       </div>
 
-      {failSignIn && (
-        <p className="flex text-red-500 mt-2">No account with that name</p>
-      )}
       <a className="flex text-blue-500 mt-2" href="/signup">
         Don't have an account? Sign up here
       </a>

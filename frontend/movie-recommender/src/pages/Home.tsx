@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
-import {
-  QueryClient,
-  QueryClientProvider,
-  useQuery,
-} from "@tanstack/react-query";
+
 import Navbar from "../components/Navbar";
 
 import SearchRes from "../components/SearchRes";

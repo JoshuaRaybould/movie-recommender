@@ -1,8 +1,9 @@
 import pandas as pd
-from backend.config import get_settings
 from sklearn.model_selection import train_test_split as sk_train_test_split
 from surprise import SVD, Dataset, Reader, accuracy
 from surprise.model_selection import cross_validate, train_test_split
+
+from backend.config import get_settings
 
 MOVIE_DATA_PATH = get_settings().movie_data_path
 

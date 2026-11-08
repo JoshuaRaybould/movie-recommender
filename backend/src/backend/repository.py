@@ -51,7 +51,7 @@ def get_movie_by_title(
         """,
         (
             user_id,
-            "%" + title + "%",
+            title + "%",
             MOVIES_PER_PAGE,
         ),
     )
