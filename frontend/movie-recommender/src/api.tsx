@@ -30,7 +30,6 @@ export async function apiFetch(
 ): Promise<unknown> {
   const url = `/api${path}`;
   const token = localStorage.getItem("token");
-  console.log(token && `Bearers ${token}`);
   const res = await fetch(url, {
     ...options,
     headers: {

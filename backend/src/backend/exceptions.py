@@ -4,3 +4,7 @@ class UserAlreadyExistsErorr(Exception):
 
 class ReviewAlreadyExistsError(Exception):
     pass
+
+
+class ReviewNotFoundError(Exception):
+    pass

@@ -4,6 +4,7 @@ import pandas as pd
 
 from backend.exceptions import (
     ReviewAlreadyExistsError,
+    ReviewNotFoundError,
     UserAlreadyExistsErorr,
 )
 from backend.schemas import (
@@ -123,14 +124,6 @@ def get_movie_by_id(con: Connection, movie_id: int) -> Movie | None:
     return Movie.model_validate(dict(movie))
 
 
-def delete_review(con: Connection, user_id: int, movie_id: int):
-    cur = con.cursor()
-    cur.execute(
-        "DELETE FROM reviews WHERE user_id = ? AND movie_id = ?",
-        (user_id, movie_id),
-    )
-
-
 def create_review(
     con: Connection, user_id: int, movie_id: int, rating: int
 ) -> Review | None:
@@ -144,7 +137,7 @@ def create_review(
 
         if review_obj is None:
             return None
-        print(dict(review_obj))
+
         return Review.model_validate(dict(review_obj))
     except IntegrityError:
         raise ReviewAlreadyExistsError
@@ -172,6 +165,33 @@ def get_ids_to_reviews_df(con: Connection) -> pd.DataFrame:
         con,
     )
     return df2
+
+
+def update_review_rating(
+    con: Connection, user_id: int, movie_id: int, rating: int
+) -> Review:
+    cur = con.execute(
+        "UPDATE reviews SET rating = ? WHERE user_id = ? AND movie_id = ? RETURNING user_id, review_id, movie_id, rating",
+        (rating, user_id, movie_id),
+    )
+
+    rev = cur.fetchone()
+    con.commit()
+    if rev is None:
+        raise ReviewNotFoundError
+
+    return Review.model_validate(dict(rev))
+
+
+def delete_movie_review(con: Connection, user_id: int, review_id: int):
+    cur = con.cursor()
+    cur.execute(
+        "DELETE FROM reviews WHERE user_id = ? AND movie_id = ?",
+        (user_id, review_id),
+    )
+    if cur.rowcount == 0:
+        raise ReviewNotFoundError
+    con.commit()
 
 
 from backend.db import get_connection

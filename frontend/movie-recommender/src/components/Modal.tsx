@@ -22,7 +22,13 @@ const Modal = ({ movieId, movieTitle, prevRating }: ratingInfo) => {
   }
 
   async function applyRating() {
-    const options = { method: "POST" };
+    let options;
+    if (accRating) {
+      options = { method: "PUT" };
+    } else {
+      options = { method: "POST" };
+    }
+
     if (rating) {
       await fullFetch(`/rate/${movieId}/${rating}`, options, ReviewSchema);
       setAccRating(rating);
@@ -33,9 +39,10 @@ const Modal = ({ movieId, movieTitle, prevRating }: ratingInfo) => {
   }
 
   async function resetRating() {
-    const options = { body: JSON.stringify({ method: "DELETE" }) };
+    const options = { method: "DELETE" };
     try {
-      await apiFetch(`/delete/rate/${movieId}`, options);
+      await apiFetch(`/rate/${movieId}`, options);
+      setAccRating(null);
       setRating(null);
       setActive(false);
     } catch (error) {
@@ -82,31 +89,29 @@ const Modal = ({ movieId, movieTitle, prevRating }: ratingInfo) => {
               <h3 className="text-xl mt-1">{movieTitle}</h3>
 
               <div className="flex flex-wrap justify-center">
-                {[...Array(10)].map((star, i) => (
-                  <>
-                    <label className="mt-2">
-                      <input
-                        className="cursor-pointer hidden"
-                        type="radio"
-                        name="editList"
-                        value="always"
-                        onClick={() => setRating(i + 1)}
-                      />
-                      {!rating || i >= rating ? (
-                        <FaRegStar
-                          className="cursor-pointer opacity-85"
-                          color="gold"
-                          size={35}
-                        ></FaRegStar>
-                      ) : (
-                        <FaStar
-                          className="cursor-pointer opacity-85"
-                          color="gold"
-                          size={35}
-                        ></FaStar>
-                      )}
-                    </label>
-                  </>
+                {[...Array(10)].map((i) => (
+                  <label key={i} className="mt-2">
+                    <input
+                      className="cursor-pointer hidden"
+                      type="radio"
+                      name="editList"
+                      value="always"
+                      onClick={() => setRating(i + 1)}
+                    />
+                    {!rating || i >= rating ? (
+                      <FaRegStar
+                        className="cursor-pointer opacity-85"
+                        color="gold"
+                        size={35}
+                      ></FaRegStar>
+                    ) : (
+                      <FaStar
+                        className="cursor-pointer opacity-85"
+                        color="gold"
+                        size={35}
+                      ></FaStar>
+                    )}
+                  </label>
                 ))}
               </div>
 

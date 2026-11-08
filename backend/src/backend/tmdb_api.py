@@ -19,7 +19,6 @@ def retrieve_pic(tmdb_id: int):
             pic = data["poster_path"]
             return pic
         else:
-            print("Error:", response.status_code)
             return None
     except:  # todo
         return None
