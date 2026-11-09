@@ -1,0 +1,24 @@
+
+services:
+    backend:
+        build: ./backend
+        restart: unless-stopped
+        ports:
+            - "8000:8000"
+        env_file: ".env"
+        volumes:
+            - db_data:/data
+
+    frontend:
+        build: ./frontend/movie-recommender
+        restart: unless-stopped
+        ports:
+            - "80:80"
+            - "443:443"
+        volumes:
+            - caddy_data:/data
+            - caddy_config:/config
+volumes:
+    db_data:
+    caddy_data:
+    caddy_config:
