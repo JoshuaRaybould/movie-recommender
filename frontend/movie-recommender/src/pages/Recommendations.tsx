@@ -109,6 +109,7 @@ const Recommendations = () => {
   }, [searchTerm]);
 
   useEffect(() => {
+    document.title = "Your Next Movie | NextBestMovie";
     if (user) {
       if (!modelTrained) {
         trainModel();
