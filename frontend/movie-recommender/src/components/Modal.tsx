@@ -3,7 +3,6 @@ import { FaRegStar, FaStar } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
 import { apiFetch, fullFetch } from "../api";
 import { ReviewSchema } from "../types";
-import Button from "./Button";
 
 type ratingInfo = {
   // todo decide what to do with this type
