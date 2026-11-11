@@ -3,6 +3,7 @@ import { FaRegStar, FaStar } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
 import { apiFetch, fullFetch } from "../api";
 import { ReviewSchema } from "../types";
+import Button from "./Button";
 
 type ratingInfo = {
   // todo decide what to do with this type
@@ -76,7 +77,7 @@ const Modal = ({ movieId, movieTitle, prevRating }: ratingInfo) => {
           />
 
           <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-            <div className="flex-col flex items-center w-116 h-66 bg-white rounded-sm">
+            <div className="flex-col flex items-center w-116 h-66 bg-main-bg rounded-sm">
               <div className="ml-auto mr-2 mt-2">
                 <RxCross2
                   onClick={toggleActive}
