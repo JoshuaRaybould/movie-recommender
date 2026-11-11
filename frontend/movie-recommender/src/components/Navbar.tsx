@@ -8,10 +8,13 @@ const NavBar = ({ searchFunc }: navInfo) => {
   const { user } = useAuth();
 
   return (
-    <nav className="flex justify-between items-center bg-[#1b1e21] mb-4 h-16">
+    <nav className="flex justify-between items-center bg-nav-background mb-4 h-16">
       <div>
-        <a className="text-4xl text-white ml-10" href={`/movies`}>
-          MovRec
+        <a
+          className="text-4xl text-main-gold font-title ml-10"
+          href={`/movies`}
+        >
+          NBMovie
         </a>
       </div>
       <div>

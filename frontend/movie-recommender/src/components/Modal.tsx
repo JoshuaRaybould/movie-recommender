@@ -59,7 +59,7 @@ const Modal = ({ movieId, movieTitle, prevRating }: ratingInfo) => {
           <p className="font-semibold">?/10&nbsp;&nbsp;</p>
         )}
         <button
-          className="rounded-sm bg-blue-500 hover:bg-blue-600 text-white border-1 border-solid focus-within:outline-2 focus-within:outline-indigo-400 outline-offset-1 cursor-pointer w-20"
+          className="rounded-sm bg-main-blue hover:bg-main-darkblue text-white border-1 border-solid focus-within:outline-2 focus-within:outline-indigo-400 outline-offset-1 cursor-pointer w-20"
           onClick={toggleActive}
         >
           <div className="flex items-center justify-center">
@@ -101,14 +101,12 @@ const Modal = ({ movieId, movieTitle, prevRating }: ratingInfo) => {
                       />
                       {!rating || i >= rating ? (
                         <FaRegStar
-                          className="cursor-pointer opacity-85"
-                          color="gold"
+                          className="cursor-pointer opacity-85 text-main-yellow"
                           size={35}
                         ></FaRegStar>
                       ) : (
                         <FaStar
-                          className="cursor-pointer opacity-85"
-                          color="gold"
+                          className="cursor-pointer opacity-85 text-main-yellow"
                           size={35}
                         ></FaStar>
                       )}

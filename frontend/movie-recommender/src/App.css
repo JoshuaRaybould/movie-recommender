@@ -1,2 +1,33 @@
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap");
+
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+
+    --color-main-gold: #eccd72; /* From lotr two towers title */
+    --color-main-yellow: #f5df00; /* Pulp Fiction */
+    --color-main-red: #c20211; /* Pulp Fiction */
+    --color-main-blue: #63aae8; /* Avatar */    
+    --color-main-darkblue: #1483b8; /* Avatar */
+    --color-main-grey: #cccccc; /* 50 shades of grey */
+    --font-title: "Cinzel", serif;
+    --color-nav-background: #1b1e21; /* lotr two towers */
+    --color-main-bg: white;
+    --color-moviecard-bg: #3b3b3b;
+}
+
+.dark {
+    --color-main-gold: #eccd72; /* From lotr two towers title */
+    --color-main-yellow: #ffdc29; /* Pulp Fiction */
+    --color-main-red: #c1060f; /* Pulp Fiction */
+    --color-main-blue: #63aae8; /* Avatar */
+    --color-main-darkblue: #1483b8; /* Avatar */
+    --font-title: "Cinzel", serif;
+    --color-nav-background: #1b1e21; /* lotr two towers */
+    --color-main-bg: #3b3b3b; /* 50 shades of grey */
+}
+
+body {
+    background-color:  var(--color-main-bg);
+}

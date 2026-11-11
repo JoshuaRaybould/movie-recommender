@@ -11,7 +11,7 @@ const SearchRes = ({ movies }: { movies: MovieAndReview[] }) => {
     <div className="grid grid-cols-4 grid-rows-2 justify-center content-normal gap-3 h-200 w-200">
       {movies.map((item: MovieAndReview) => (
         <div
-          className="rounded-sm bottom-0 bg-gray-300 overflow-hidden"
+          className="rounded-sm bottom-0 bg-main-grey overflow-hidden"
           key={item.movieId}
         >
           <img
