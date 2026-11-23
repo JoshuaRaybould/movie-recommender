@@ -3,7 +3,7 @@ export default function Input(props: React.ComponentProps<"input">) {
     <>
       <input
         name="myInput"
-        className="flex rounded-xs pl-2 outline-1 h-9"
+        className="flex rounded-xs pl-2 outline-1 h-9 rounded-sm bg-white"
         {...props}
       />
     </>

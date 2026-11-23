@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../auth/authContext";
 import Input from "../components/Input";
+import PasswordInput from "../components/PasswordInput";
 
 const LogIn = () => {
   const [username, setUsername] = useState<string>("");
@@ -22,28 +23,26 @@ const LogIn = () => {
   return (
     <>
       <title>Log In | NextBestMovie</title>
-      <div className="flex-col flex w-full h-screen items-center gap-5">
-        <h1 className="flex text-4xl mt-10">NextBestMovie</h1>
-        <h3 className="flex text-2xl">AI powered movie recommendations</h3>
-        <h4 className="flex text-2xl mt-15">Log in</h4>
-
+      <div className="flex-col flex w-full h-screen items-center justify-center">
         <form
           action={attemptLogIn}
-          className="flex flex-col items-center justify-center gap-4 outline-1 p-3 rounded-md"
+          className="flex flex-col items-center justify-center gap-5 outline-2 outline-gray-400 p-12 rounded-md bg-gray-100 mb-20"
         >
+          <h1 className="flex text-4xl">NextBestMovie</h1>{" "}
+          <h3 className="flex text-xl">AI powered movie recommendations</h3>
+          <h4 className="flex text-2xl">Log In</h4>
           <Input
             placeholder="Username"
             onChange={(e) => {
               setUsername(e.target.value);
             }}
           />
-          <Input
+          <PasswordInput
             placeholder="Password"
             onChange={(e) => {
               setPassword(e.target.value);
             }}
           />
-
           <div className="flex">
             <button
               type="submit"
@@ -52,11 +51,13 @@ const LogIn = () => {
               Next
             </button>
           </div>
+          <p>
+            Don't have an account?&nbsp;
+            <Link className="text-blue-500" to="/signup">
+              Sign up
+            </Link>
+          </p>
         </form>
-
-        <a className="flex text-blue-500 mt-2" href="/signup">
-          Don't have an account? Sign up here
-        </a>
       </div>
     </>
   );
